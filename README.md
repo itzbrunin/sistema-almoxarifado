@@ -10,13 +10,13 @@ Construir, passo a passo, um sistema fácil de usar para registrar ferramentas, 
 
 ## O que existe hoje
 
-A primeira tela estática do sistema foi criada com HTML e CSS puros. Ela exibe o cabeçalho, os indicadores de estoque e uma tabela com dados de exemplo. Os dados ainda não são lidos da planilha nem salvos em um banco de dados.
+A primeira tela do sistema exibe o cabeçalho, os indicadores de estoque e uma tabela com dados de exemplo. A busca filtra essa tabela no navegador. Os dados ainda não são lidos da planilha nem salvos em um banco de dados.
 
 ## Tecnologias da primeira etapa
 
 - **HTML:** define os elementos e o conteúdo da página.
 - **CSS:** define cores, espaçamentos e o visual.
-- **JavaScript:** será incluído na próxima etapa para tornar a tela interativa.
+- **JavaScript:** torna a tela interativa. A busca da tabela usa JavaScript puro.
 
 ## Estrutura de arquivos
 
@@ -25,6 +25,8 @@ sistema-almoxarifado/
 ├── index.html       # Estrutura da primeira página
 ├── css/
 │   └── styles.css   # Estilos visuais da página
+├── js/
+│   └── app.js       # Comportamentos interativos da página
 ├── README.md        # Documentação do projeto
 └── .gitignore       # Arquivos que o Git não deve publicar
 ```
@@ -38,6 +40,15 @@ sistema-almoxarifado/
 5. Registrar uma trilha de auditoria: usuário, data, ação, valores anteriores e valores novos.
 6. Importar uma cópia dos dados da planilha e criar exportações.
 7. Publicar a aplicação para acesso no computador e no celular.
+
+## Registro de aprendizagem
+
+| Etapa | Conteúdo aprendido | Situação |
+| --- | --- | --- |
+| 1 | Estrutura HTML e estilos CSS iniciais | Concluída |
+| 2 | Painel, cartões de resumo e tabela com dados de exemplo | Concluída |
+| 3 | Busca da tabela com JavaScript | Concluída |
+| 4 | Banco de dados, login e auditoria | Planejada |
 
 ## Git e GitHub
 

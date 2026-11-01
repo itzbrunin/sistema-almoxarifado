@@ -64,6 +64,20 @@
           </button>
         </div>
 
+        <div class="busca">
+          <label for="campo-busca">Buscar ferramenta</label>
+          <input
+            id="campo-busca"
+            type="search"
+            placeholder="Patrimônio, descrição, local ou responsável"
+            autocomplete="off"
+            aria-describedby="resultado-busca"
+          />
+          <p id="resultado-busca" class="resultado-busca" aria-live="polite">
+            3 ferramentas encontradas.
+          </p>
+        </div>
+
         <div class="tabela-container">
           <table>
             <caption>
@@ -78,7 +92,7 @@
                 <th scope="col">Responsável</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody id="corpo-ferramentas">
               <tr>
                 <td>1089</td>
                 <td>Furadeira martelete Bosch GBH 2-24D</td>
@@ -105,5 +119,6 @@
         </div>
       </section>
     </main>
+    <script src="js/app.js" defer></script>
   </body>
 </html>
