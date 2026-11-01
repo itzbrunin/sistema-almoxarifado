@@ -1,0 +1,37 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background-color: #f4f7fb;
+  color: #1f2937;
+}
+
+header {
+  padding: 24px;
+  background-color: #111827;
+  color: #ffffff;
+}
+
+header h1,
+header p {
+  margin: 0;
+}
+
+header p {
+  margin-top: 4px;
+}
+
+main {
+  max-width: 1100px;
+  margin: 32px auto;
+  padding: 0 24px;
+}
+
+section {
+  padding: 24px;
+  background-color: #ffffff;
+  border-radius: 12px;
+}
