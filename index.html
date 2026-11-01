@@ -64,15 +64,28 @@
           </button>
         </div>
 
-        <div class="busca">
-          <label for="campo-busca">Buscar ferramenta</label>
-          <input
-            id="campo-busca"
-            type="search"
-            placeholder="Patrimônio, descrição, local ou responsável"
-            autocomplete="off"
-            aria-describedby="resultado-busca"
-          />
+        <div class="filtros">
+          <div class="campo-filtro campo-filtro--busca">
+            <label for="campo-busca">Buscar ferramenta</label>
+            <input
+              id="campo-busca"
+              type="search"
+              placeholder="Patrimônio, descrição, local ou responsável"
+              autocomplete="off"
+              aria-describedby="resultado-busca"
+            />
+          </div>
+
+          <div class="campo-filtro">
+            <label for="filtro-situacao">Situação</label>
+            <select id="filtro-situacao">
+              <option value="">Todas</option>
+              <option value="disponivel">Disponível</option>
+              <option value="campo">Em campo</option>
+              <option value="manutencao">Em manutenção</option>
+            </select>
+          </div>
+
           <p id="resultado-busca" class="resultado-busca" aria-live="polite">
             3 ferramentas encontradas.
           </p>
@@ -84,7 +97,7 @@
               Dados de exemplo para a construção da página.
             </caption>
             <thead>
-              <tr>
+              <tr data-situacao="campo">
                 <th scope="col">Patrimônio</th>
                 <th scope="col">Descrição</th>
                 <th scope="col">Situação</th>
@@ -93,14 +106,14 @@
               </tr>
             </thead>
             <tbody id="corpo-ferramentas">
-              <tr>
+              <tr data-situacao="disponivel">
                 <td>1089</td>
                 <td>Furadeira martelete Bosch GBH 2-24D</td>
                 <td><span class="situacao situacao--campo">Em campo</span></td>
                 <td>IDV</td>
                 <td>Bruno Francisco</td>
               </tr>
-              <tr>
+              <tr data-situacao="manutencao">
                 <td>1533</td>
                 <td>Furadeira Professional 1/2' Bosch</td>
                 <td><span class="situacao situacao--disponivel">Disponível</span></td>

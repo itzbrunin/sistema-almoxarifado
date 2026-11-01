@@ -47,7 +47,7 @@ sistema-almoxarifado/
 | --- | --- | --- |
 | 1 | Estrutura HTML e estilos CSS iniciais | Concluída |
 | 2 | Painel, cartões de resumo e tabela com dados de exemplo | Concluída |
-| 3 | Busca da tabela com JavaScript | Concluída |
+| 3 | Busca e filtro por situação com JavaScript | Concluída |
 | 4 | Banco de dados, login e auditoria | Planejada |
 
 ## Git e GitHub
