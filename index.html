@@ -7,15 +7,102 @@
     <link rel="stylesheet" href="css/styles.css" />
   </head>
   <body>
-    <header>
-      <h1>Controle de Ferramentas</h1>
-      <p>Almoxarifado</p>
+    <header class="topo">
+      <div class="topo__conteudo">
+        <div>
+          <p class="topo__identificacao">ALMOXARIFADO</p>
+          <h1>Controle de Ferramentas</h1>
+        </div>
+        <p class="topo__modo">Modo demonstração</p>
+      </div>
     </header>
 
     <main>
-      <section>
-        <h2>Ferramentas cadastradas</h2>
-        <p>Esta será a página inicial do sistema.</p>
+      <section class="apresentacao" aria-labelledby="titulo-apresentacao">
+        <div>
+          <p class="etiqueta">VISÃO GERAL</p>
+          <h2 id="titulo-apresentacao">Acompanhe suas ferramentas em um só lugar.</h2>
+          <p>
+            Esta é a primeira versão visual do sistema. Os dados abaixo são
+            apenas exemplos e ainda não alteram a planilha original.
+          </p>
+        </div>
+        <a class="botao" href="#lista-ferramentas">Ver ferramentas</a>
+      </section>
+
+      <section class="resumo" aria-labelledby="titulo-resumo">
+        <h2 id="titulo-resumo" class="titulo-secao">Resumo do estoque</h2>
+        <div class="cartoes">
+          <article class="cartao">
+            <p class="cartao__titulo">Disponíveis</p>
+            <strong class="cartao__numero">42</strong>
+            <p class="cartao__descricao">No almoxarifado</p>
+          </article>
+
+          <article class="cartao">
+            <p class="cartao__titulo">Em campo</p>
+            <strong class="cartao__numero">18</strong>
+            <p class="cartao__descricao">Com as equipes</p>
+          </article>
+
+          <article class="cartao">
+            <p class="cartao__titulo">Em manutenção</p>
+            <strong class="cartao__numero">3</strong>
+            <p class="cartao__descricao">Aguardando retorno</p>
+          </article>
+        </div>
+      </section>
+
+      <section id="lista-ferramentas" class="painel" aria-labelledby="titulo-ferramentas">
+        <div class="painel__cabecalho">
+          <div>
+            <p class="etiqueta">INVENTÁRIO</p>
+            <h2 id="titulo-ferramentas">Ferramentas cadastradas</h2>
+          </div>
+          <button class="botao botao--desativado" type="button" disabled>
+            Nova ferramenta
+          </button>
+        </div>
+
+        <div class="tabela-container">
+          <table>
+            <caption>
+              Dados de exemplo para a construção da página.
+            </caption>
+            <thead>
+              <tr>
+                <th scope="col">Patrimônio</th>
+                <th scope="col">Descrição</th>
+                <th scope="col">Situação</th>
+                <th scope="col">Local</th>
+                <th scope="col">Responsável</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>1089</td>
+                <td>Furadeira martelete Bosch GBH 2-24D</td>
+                <td><span class="situacao situacao--campo">Em campo</span></td>
+                <td>IDV</td>
+                <td>Bruno Francisco</td>
+              </tr>
+              <tr>
+                <td>1533</td>
+                <td>Furadeira Professional 1/2' Bosch</td>
+                <td><span class="situacao situacao--disponivel">Disponível</span></td>
+                <td>Almoxarifado</td>
+                <td>-</td>
+              </tr>
+              <tr>
+                <td>1080</td>
+                <td>Serra de corte GCO 2000 Bosch</td>
+                <td><span class="situacao situacao--manutencao">Manutenção</span></td>
+                <td>Assistência técnica</td>
+                <td>-</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </section>
     </main>
   </body>

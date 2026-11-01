@@ -10,7 +10,7 @@ Construir, passo a passo, um sistema fácil de usar para registrar ferramentas, 
 
 ## O que existe hoje
 
-A primeira tela estática do sistema foi criada com HTML e CSS puros. Ela exibe um cabeçalho e a estrutura inicial da página de ferramentas.
+A primeira tela estática do sistema foi criada com HTML e CSS puros. Ela exibe o cabeçalho, os indicadores de estoque e uma tabela com dados de exemplo. Os dados ainda não são lidos da planilha nem salvos em um banco de dados.
 
 ## Tecnologias da primeira etapa
 
@@ -54,7 +54,7 @@ sistema-almoxarifado/
 | Etapa | Conteúdo aprendido | Situação |
 | --- | --- | --- |
 | 1 | Estrutura HTML e estilos CSS iniciais | Concluída |
-| 2 | Componentes da página e dados de exemplo | Próxima |
+| 2 | Painel, cartões de resumo e tabela com dados de exemplo | Concluída |
 | 3 | JavaScript e interações | Planejada |
 | 4 | Banco de dados, login e auditoria | Planejada |
 
