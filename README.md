@@ -18,16 +18,6 @@ A primeira tela estática do sistema foi criada com HTML e CSS puros. Ela exibe 
 - **CSS:** define cores, espaçamentos e o visual.
 - **JavaScript:** será incluído na próxima etapa para tornar a tela interativa.
 
-Começar sem bibliotecas permite entender o que cada linha faz. Quando a base estiver clara, poderemos adotar ferramentas que acelerem o projeto sem esconder os conceitos.
-
-## Como visualizar a página
-
-1. Abra a pasta `sistema-almoxarifado` no Visual Studio Code.
-2. Abra o arquivo `index.html`.
-3. Abra-o no navegador, com dois cliques ou usando uma extensão de servidor local do VS Code.
-
-Nenhuma instalação é necessária nesta primeira etapa.
-
 ## Estrutura de arquivos
 
 ```text
@@ -48,15 +38,6 @@ sistema-almoxarifado/
 5. Registrar uma trilha de auditoria: usuário, data, ação, valores anteriores e valores novos.
 6. Importar uma cópia dos dados da planilha e criar exportações.
 7. Publicar a aplicação para acesso no computador e no celular.
-
-## Registro de aprendizagem
-
-| Etapa | Conteúdo aprendido | Situação |
-| --- | --- | --- |
-| 1 | Estrutura HTML e estilos CSS iniciais | Concluída |
-| 2 | Painel, cartões de resumo e tabela com dados de exemplo | Concluída |
-| 3 | JavaScript e interações | Planejada |
-| 4 | Banco de dados, login e auditoria | Planejada |
 
 ## Git e GitHub
 
