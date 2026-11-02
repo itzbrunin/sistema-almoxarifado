@@ -2,7 +2,7 @@
 
 Projeto web para controlar ferramentas e equipamentos do almoxarifado.
 
-> A planilha original `CONTROLE DE FERRAMENTAS.xlsx` não será alterada por este projeto. Ela continuará sendo a referência inicial dos dados e poderá ser importada futuramente por meio de uma cópia.
+> A planilha `CONTROLE DE FERRAMENTAS.xlsx` é a fonte operacional de dados autorizada para o sistema. Antes de qualquer gravação, o sistema criará uma cópia de segurança e registrará a alteração no histórico.
 
 ## Objetivo
 
@@ -10,13 +10,27 @@ Construir, passo a passo, um sistema fácil de usar para registrar ferramentas, 
 
 ## O que existe hoje
 
-A primeira tela do sistema exibe o cabeçalho, os indicadores de estoque e uma tabela com dados de exemplo. A busca filtra essa tabela no navegador. Os dados ainda não são lidos da planilha nem salvos em um banco de dados.
+A primeira tela do sistema exibe o cabeçalho, os indicadores de estoque e uma tabela com dados de exemplo. A busca filtra essa tabela no navegador. A API local para ler a aba `CONTROLE` do Excel também está pronta; a interface ainda será conectada a ela na próxima etapa.
 
 ## Tecnologias da primeira etapa
 
 - **HTML:** define os elementos e o conteúdo da página.
 - **CSS:** define cores, espaçamentos e o visual.
 - **JavaScript:** torna a tela interativa. A busca da tabela usa JavaScript puro.
+- **Node.js:** executa o servidor local e disponibiliza a API.
+- **PowerShell e Microsoft Excel:** leem o arquivo preservando as estruturas existentes da planilha.
+
+## Executar a aplicação com a planilha
+
+Dentro da pasta do projeto, execute:
+
+```bash
+npm run dev
+```
+
+Depois, abra [http://localhost:3000](http://localhost:3000). Para conferir somente os dados que a API leu, abra [http://localhost:3000/api/ferramentas](http://localhost:3000/api/ferramentas).
+
+Nesta primeira etapa da integração, a planilha é aberta somente para leitura. Nenhuma alteração é feita no arquivo Excel.
 
 ## Estrutura de arquivos
 
@@ -27,6 +41,10 @@ sistema-almoxarifado/
 │   └── styles.css   # Estilos visuais da página
 ├── js/
 │   └── app.js       # Comportamentos interativos da página
+├── scripts/
+│   └── ler-planilha.ps1 # Leitura segura do Excel pela automação do Windows
+├── server.js        # Servidor web e API local
+├── package.json     # Comandos do projeto Node.js
 ├── README.md        # Documentação do projeto
 └── .gitignore       # Arquivos que o Git não deve publicar
 ```
@@ -35,10 +53,10 @@ sistema-almoxarifado/
 
 1. Montar a página inicial e uma tabela de ferramentas com dados de exemplo.
 2. Criar interações com JavaScript: busca, filtros e formulários.
-3. Criar uma API e um banco de dados separado da planilha.
-4. Implementar login e perfis de acesso.
-5. Registrar uma trilha de auditoria: usuário, data, ação, valores anteriores e valores novos.
-6. Importar uma cópia dos dados da planilha e criar exportações.
+3. Conectar a página à API e exibir os dados reais da planilha.
+4. Criar gravações seguras no Excel e a aba `HISTORICO`.
+5. Implementar login e perfis de acesso.
+6. Registrar uma trilha de auditoria: usuário, data, ação, valores anteriores e valores novos.
 7. Publicar a aplicação para acesso no computador e no celular.
 
 ## Registro de aprendizagem
@@ -48,7 +66,8 @@ sistema-almoxarifado/
 | 1 | Estrutura HTML e estilos CSS iniciais | Concluída |
 | 2 | Painel, cartões de resumo e tabela com dados de exemplo | Concluída |
 | 3 | Busca e filtro por situação com JavaScript | Concluída |
-| 4 | Banco de dados, login e auditoria | Planejada |
+| 4 | API local para ler a aba CONTROLE do Excel | Concluída |
+| 5 | Atualização do Excel, login e auditoria | Planejada |
 
 ## Git e GitHub
 
