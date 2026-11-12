@@ -18,10 +18,12 @@ import ExcelJS from "exceljs";
 // ============================================================
 
 // Define o diretório principal do projeto.
-const diretorioProjeto = fileURLToPath(new URL(".", import.meta.url));
+const diretorioProjeto = resolve(
+  fileURLToPath(new URL(".", import.meta.url))
+);
 
 // Define o caminho da planilha Excel.
-// A planilha está localizada uma pasta acima do projeto.
+
 const caminhoPlanilha = resolve(
   diretorioProjeto,
   "..",
@@ -102,6 +104,187 @@ async function lerFerramentasDaPlanilha() {
   // Armazena todos os registros encontrados.
   const ferramentas = [];
 
+
+// ======================================================
+// CONFERÊNCIA INDEPENDENTE DA QUANTIDADE DE ITENS
+// Conta os registros diretamente nas células do Excel.
+// ======================================================
+
+let totalColunaA = 0;
+let totalColunasABC = 0;
+let totalDesdeLinha4 = 0;
+let totalDesdeLinha1 = 0;
+
+const registrosEncontrados = [];
+
+for (let numeroLinha = 1; numeroLinha <= worksheet.rowCount; numeroLinha++) {
+    const linha = worksheet.getRow(numeroLinha);
+
+    const item = linha.getCell(1).text.trim();
+    const patrimonio = linha.getCell(2).text.trim();
+    const descricao = linha.getCell(3).text.trim();
+
+    const temItem = item !== "";
+    const temIdentificacao = Boolean(item || patrimonio || descricao);
+
+    if (temItem) totalColunaA++;
+
+    if (temIdentificacao) {
+        totalDesdeLinha1++;
+
+        if (numeroLinha >= 4) {
+            totalDesdeLinha4++;
+        }
+
+        registrosEncontrados.push({
+            linha: numeroLinha,
+            item,
+            patrimonio,
+            descricao
+        });
+    }
+
+    if (numeroLinha >= 4 && temIdentificacao) {
+        totalColunasABC++;
+    }
+}
+
+console.log("\n========== CONFERÊNCIA DOS REGISTROS ==========");
+console.log("Registros com item na coluna A:", totalColunaA);
+console.log("Registros com identificação desde a linha 1:", totalDesdeLinha1);
+console.log("Registros com identificação desde a linha 4:", totalDesdeLinha4);
+console.log("Total de registros A/B/C a partir da linha 4:", totalColunasABC);
+console.log("Primeiras linhas encontradas:", registrosEncontrados.slice(0, 5));
+console.log("Últimas linhas encontradas:", registrosEncontrados.slice(-5));
+console.log("===============================================\n");
+
+
+console.log("\n--- VERIFICAÇÃO DA SEQUÊNCIA DOS ITENS ---");
+
+const itensNumericos = [];
+
+for (let numeroLinha = 4; numeroLinha <= worksheet.rowCount; numeroLinha++) {
+    const valor = worksheet.getRow(numeroLinha).getCell(1).text.trim();
+    const numero = Number(valor);
+
+    if (valor !== "" && Number.isInteger(numero)) {
+        itensNumericos.push(numero);
+    }
+}
+
+const itensExistentes = new Set(itensNumericos);
+const itensAusentes = [];
+
+for (let numero = 1; numero <= 898; numero++) {
+    if (!itensExistentes.has(numero)) {
+        itensAusentes.push(numero);
+    }
+}
+
+console.log("Quantidade de itens numéricos:", itensNumericos.length);
+console.log("Primeiro item:", Math.min(...itensNumericos));
+console.log("Último item:", Math.max(...itensNumericos));
+console.log("Itens ausentes:", itensAusentes);
+console.log("------------------------------------------\n");
+
+
+console.log("\n--- ANÁLISE DE DUPLICIDADES E SALTOS ---");
+
+const ocorrencias = new Map();
+
+for (let numeroLinha = 4; numeroLinha <= worksheet.rowCount; numeroLinha++) {
+    const linha = worksheet.getRow(numeroLinha);
+
+    const item = linha.getCell(1).text.trim();
+    const patrimonio = linha.getCell(2).text.trim();
+    const descricao = linha.getCell(3).text.trim();
+
+    if (!/^\d+$/.test(item)) continue;
+
+    const numero = Number(item);
+
+    if (!ocorrencias.has(numero)) {
+        ocorrencias.set(numero, []);
+    }
+
+    ocorrencias.get(numero).push({
+        linha: numeroLinha,
+        item,
+        patrimonio,
+        descricao
+    });
+}
+
+// Identifica itens duplicados.
+const duplicados = [];
+
+for (const [numero, registros] of ocorrencias) {
+    if (registros.length > 1) {
+        duplicados.push({ numero, registros });
+    }
+}
+
+console.log("Itens duplicados:", duplicados);
+
+
+console.log("\n--- INSPEÇÃO DAS LINHAS FÍSICAS ---");
+
+const intervalos = [
+    { inicio: 510, fim: 522 },
+    { inicio: 628, fim: 635 }
+];
+
+for (const intervalo of intervalos) {
+    console.log(`\nVerificando linhas ${intervalo.inicio} até ${intervalo.fim}`);
+
+    for (
+        let numeroLinha = intervalo.inicio;
+        numeroLinha <= intervalo.fim;
+        numeroLinha++
+    ) {
+        const linha = worksheet.getRow(numeroLinha);
+
+        const dados = [];
+
+        for (let coluna = 1; coluna <= 11; coluna++) {
+            dados.push(linha.getCell(coluna).text.trim());
+        }
+
+        console.log({
+            linha: numeroLinha,
+            oculta: linha.hidden,
+            item: dados[0],
+            patrimonio: dados[1],
+            descricao: dados[2],
+            demaisColunas: dados.slice(3)
+        });
+    }
+}
+
+console.log("--- FIM DA INSPEÇÃO ---\n");
+
+
+// Mostra os registros próximos aos saltos identificados.
+const numerosAusentes = [513, 515, 519, 520, 521, 522, 523, 636];
+
+for (const numero of numerosAusentes) {
+    console.log(`\nVerificando proximidade do item ${numero}:`);
+
+    for (const vizinho of [numero - 1, numero + 1]) {
+        const registros = ocorrencias.get(vizinho) || [];
+
+        console.log(`Item ${vizinho}:`, registros);
+    }
+}
+
+console.log("\nTotal de números distintos:", ocorrencias.size);
+console.log("Total de ocorrências numéricas:", 
+    [...ocorrencias.values()].reduce((total, registros) => total + registros.length, 0)
+);
+
+console.log("--- FIM DA ANÁLISE ---\n");
+
+
   // Percorre todas as linhas preenchidas da planilha.
   worksheet.eachRow({ includeEmpty: false }, (linha, numeroLinha) => {
 
@@ -134,11 +317,16 @@ async function lerFerramentasDaPlanilha() {
     });
   });
 
-  // Calcula quantas ferramentas possuem e não possuem patrimônio.
-  const comPatrimonio = ferramentas.filter(
-    ferramenta => ferramenta.patrimonio !== ""
-  ).length;
+  
+  // Considera patrimônio válido somente quando o campo
+  // não está vazio e não contém apenas um hífen.
+  const comPatrimonio = ferramentas.filter(f => {
+      const patrimonio = f.patrimonio.trim();
 
+      return patrimonio !== "" && patrimonio !== "-";
+  }).length;
+
+  // Todas as ferramentas sem patrimônio.
   const semPatrimonio = ferramentas.length - comPatrimonio;
 
   // Exibe o resultado da leitura no terminal.

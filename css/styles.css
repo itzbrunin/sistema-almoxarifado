@@ -1,3 +1,8 @@
+
+/* ============================================================
+   1. CONFIGURAÇÕES GERAIS
+   ============================================================ */
+
 * {
   box-sizing: border-box;
 }
@@ -9,6 +14,17 @@ body {
   color: #1f2937;
 }
 
+main {
+  max-width: 1200px;
+  margin: 32px auto;
+  padding: 0 24px;
+}
+
+
+/* ============================================================
+   2. CABEÇALHO
+   ============================================================ */
+
 .topo {
   padding: 20px 24px;
   background-color: #111827;
@@ -17,10 +33,11 @@ body {
 
 .topo__conteudo {
   display: flex;
-  max-width: 1100px;
+  max-width: 1200px;
   margin: 0 auto;
   align-items: center;
   justify-content: space-between;
+  gap: 16px;
 }
 
 .topo h1,
@@ -48,11 +65,10 @@ body {
   font-size: 14px;
 }
 
-main {
-  max-width: 1100px;
-  margin: 32px auto;
-  padding: 0 24px;
-}
+
+/* ============================================================
+   3. APRESENTAÇÃO
+   ============================================================ */
 
 .apresentacao,
 .painel {
@@ -98,10 +114,10 @@ main {
   white-space: nowrap;
 }
 
-.botao--desativado {
-  background-color: #9ca3af;
-  cursor: not-allowed;
-}
+
+/* ============================================================
+   4. INDICADORES
+   ============================================================ */
 
 .resumo {
   margin: 32px 0;
@@ -114,11 +130,12 @@ main {
 
 .cartoes {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
   gap: 16px;
 }
 
 .cartao {
+  min-width: 0;
   padding: 20px;
   border: 1px solid #e5e7eb;
   border-radius: 12px;
@@ -135,7 +152,17 @@ main {
   display: block;
   margin: 12px 0 4px;
   font-size: 32px;
+  overflow-wrap: anywhere;
 }
+
+.cartao--erro {
+  border-color: #fecaca;
+}
+
+
+/* ============================================================
+   5. PAINEL E FILTROS
+   ============================================================ */
 
 .painel__cabecalho {
   display: flex;
@@ -153,10 +180,11 @@ main {
 
 .campo-filtro {
   min-width: 180px;
+  flex: 1;
 }
 
 .campo-filtro--busca {
-  flex: 1;
+  flex: 2;
 }
 
 .campo-filtro label {
@@ -169,6 +197,7 @@ main {
 .campo-filtro input,
 .campo-filtro select {
   width: 100%;
+  min-height: 44px;
   padding: 12px;
   border: 1px solid #9ca3af;
   border-radius: 8px;
@@ -185,24 +214,29 @@ main {
 
 .resultado-busca {
   width: 100%;
-  margin: 8px 0 0;
+  margin: 20px 0 0;
   color: #6b7280;
   font-size: 14px;
 }
 
+
+/* ============================================================
+   6. TABELA DE FERRAMENTAS
+   ============================================================ */
+
 .tabela-container {
   overflow-x: auto;
+  margin-top: 12px;
 }
 
 table {
   width: 100%;
-  margin-top: 16px;
   border-collapse: collapse;
   text-align: left;
 }
 
 caption {
-  margin-bottom: 12px;
+  padding: 12px 0;
   color: #6b7280;
   text-align: left;
 }
@@ -211,20 +245,36 @@ th,
 td {
   padding: 14px 12px;
   border-bottom: 1px solid #e5e7eb;
+  vertical-align: middle;
 }
 
 th {
   background-color: #f9fafb;
   color: #374151;
   font-size: 14px;
+  white-space: nowrap;
 }
+
+td {
+  font-size: 14px;
+}
+
+tbody tr:hover {
+  background-color: #f9fafb;
+}
+
+
+/* ============================================================
+   7. IDENTIFICAÇÃO DAS SITUAÇÕES
+   ============================================================ */
 
 .situacao {
   display: inline-block;
   padding: 6px 10px;
   border-radius: 999px;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: bold;
+  white-space: nowrap;
 }
 
 .situacao--disponivel {
@@ -242,7 +292,111 @@ th {
   color: #92400e;
 }
 
+.situacao--outra {
+  background-color: #e5e7eb;
+  color: #374151;
+}
+
+
+/* ============================================================
+   8. PAGINAÇÃO
+   ============================================================ */
+
+.paginacao {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-top: 20px;
+  padding-top: 18px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.paginacao__quantidade {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #4b5563;
+  font-size: 14px;
+}
+
+.paginacao__quantidade label {
+  font-weight: bold;
+}
+
+.paginacao__quantidade select {
+  min-height: 38px;
+  padding: 6px 10px;
+  border: 1px solid #9ca3af;
+  border-radius: 8px;
+  background-color: #ffffff;
+  color: #1f2937;
+  font: inherit;
+  cursor: pointer;
+}
+
+.paginacao__quantidade select:focus {
+  border-color: #2563eb;
+  outline: 3px solid #bfdbfe;
+}
+
+.paginacao__navegacao {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.paginacao__navegacao button {
+  min-width: 38px;
+  min-height: 38px;
+  padding: 6px 10px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  background-color: #ffffff;
+  color: #1f2937;
+  font-size: 18px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.2s, border-color 0.2s;
+}
+
+.paginacao__navegacao button:hover:not(:disabled) {
+  border-color: #2563eb;
+  background-color: #eff6ff;
+  color: #1d4ed8;
+}
+
+.paginacao__navegacao button:focus-visible {
+  outline: 3px solid #bfdbfe;
+  outline-offset: 2px;
+}
+
+.paginacao__navegacao button:disabled {
+  background-color: #f3f4f6;
+  color: #9ca3af;
+  cursor: not-allowed;
+}
+
+#informacao-paginacao {
+  min-width: 105px;
+  color: #4b5563;
+  font-size: 14px;
+  text-align: center;
+  white-space: nowrap;
+}
+
+
+/* ============================================================
+   9. RESPONSIVIDADE
+   ============================================================ */
+
 @media (max-width: 700px) {
+  main {
+    padding: 0 16px;
+  }
+
   .topo__conteudo,
   .apresentacao,
   .painel__cabecalho {
@@ -250,11 +404,60 @@ th {
     flex-direction: column;
   }
 
+  .apresentacao,
+  .painel {
+    padding: 18px;
+  }
+
   .cartoes {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .filtros {
     flex-direction: column;
+  }
+
+  .campo-filtro {
+    width: 100%;
+  }
+
+  .paginacao {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .paginacao__navegacao {
+    width: 100%;
+    justify-content: space-between;
+  }
+}
+
+@media (max-width: 420px) {
+  .cartoes {
+    grid-template-columns: 1fr;
+  }
+
+  .topo h1 {
+    font-size: 22px;
+  }
+
+  .paginacao__quantidade {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .paginacao__navegacao {
+    gap: 5px;
+  }
+
+  .paginacao__navegacao button {
+    min-width: 34px;
+    min-height: 34px;
+    padding: 5px 8px;
+  }
+
+  #informacao-paginacao {
+    min-width: 90px;
+    font-size: 13px;
   }
 }
