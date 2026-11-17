@@ -3,13 +3,13 @@
 // 1. IMPORTAÇÕES
 // ============================================================
 
-// Importa os recursos necessários do Node.js.
+// Recursos nativos do Node.js.
 import { createServer } from "node:http";
 import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { extname, resolve, sep } from "node:path";
 
-// Importa a biblioteca responsável pela leitura de arquivos Excel.
+// Biblioteca para leitura de arquivos Excel.
 import ExcelJS from "exceljs";
 
 
@@ -17,15 +17,45 @@ import ExcelJS from "exceljs";
 // 2. CONFIGURAÇÕES DO SERVIDOR
 // ============================================================
 
-// Define o diretório principal do projeto.
+// Diretório principal do projeto.
 const diretorioProjeto = resolve(
   fileURLToPath(new URL(".", import.meta.url))
 );
 
-// Caminho da planilha:
-// - Render: utiliza a variável PLANILHA_PATH.
-// - Windows: utiliza a planilha na pasta acima do projeto.
-const caminhoPlanilha = process.env.PLANILHA_PATH
+// Porta definida pelo ambiente de hospedagem.
+const porta = Number(process.env.PORT || 3000);
+
+// Configurações do Supabase.
+const supabaseUrl = process.env.SUPABASE_URL?.replace(/\/+$/, "");
+const supabaseSecretKey = process.env.SUPABASE_SECRET_KEY;
+const supabaseBucket = process.env.SUPABASE_BUCKET;
+const supabaseArquivo = process.env.SUPABASE_FILE;
+
+// Verifica quantas configurações do Supabase foram informadas.
+const configuracoesSupabase = [
+  supabaseUrl,
+  supabaseSecretKey,
+  supabaseBucket,
+  supabaseArquivo
+];
+
+const quantidadeConfiguracoes = configuracoesSupabase.filter(Boolean).length;
+
+// Se alguma variável foi informada, todas devem estar configuradas.
+if (
+  quantidadeConfiguracoes > 0 &&
+  quantidadeConfiguracoes !== configuracoesSupabase.length
+) {
+  throw new Error(
+    "Configuração incompleta do Supabase. Verifique as quatro variáveis de ambiente."
+  );
+}
+
+// Define a origem dos dados.
+const utilizarSupabase = quantidadeConfiguracoes === 4;
+
+// Caminho local utilizado durante o desenvolvimento no Windows.
+const caminhoPlanilhaLocal = process.env.PLANILHA_PATH
   ? resolve(process.env.PLANILHA_PATH)
   : resolve(
       diretorioProjeto,
@@ -33,16 +63,18 @@ const caminhoPlanilha = process.env.PLANILHA_PATH
       "CONTROLE DE FERRAMENTAS.xlsx"
     );
 
-console.log("--------------------------------------");
-console.log("VERIFICAÇÃO DA PLANILHA");
-console.log("PLANILHA_PATH:", process.env.PLANILHA_PATH);
-console.log("Caminho utilizado:", caminhoPlanilha);
-console.log("--------------------------------------");
+// Cache dos dados da planilha.
+const TEMPO_CACHE = 5 * 60 * 1000;
 
-// Define a porta do servidor.
-const porta = Number(process.env.PORT || 3000);
+let dadosCacheados = null;
+let cacheExpiraEm = 0;
+let leituraEmAndamento = null;
 
-// Define os tipos de conteúdo dos arquivos disponibilizados.
+// Ativa diagnósticos detalhados somente quando solicitado.
+const debugInventario =
+  process.env.DEBUG_INVENTARIO === "true";
+
+// Tipos de conteúdo dos arquivos estáticos.
 const tiposDeConteudo = {
   ".css": "text/css; charset=utf-8",
   ".html": "text/html; charset=utf-8",
@@ -55,15 +87,28 @@ const tiposDeConteudo = {
   ".ico": "image/x-icon"
 };
 
+console.log("--------------------------------------");
+console.log("CONFIGURAÇÃO DO ALMOXARIFADO");
+console.log("Armazenamento:", utilizarSupabase ? "Supabase Storage" : "Arquivo local");
+console.log("Cache:", `${TEMPO_CACHE / 1000} segundos`);
+console.log("Modo de diagnóstico:", debugInventario ? "Ativado" : "Desativado");
+
+if (!utilizarSupabase) {
+  console.log("Caminho local:", caminhoPlanilhaLocal);
+}
+
+console.log("--------------------------------------");
+
 
 // ============================================================
-// 3. FUNÇÃO PARA RESPONDER EM JSON
+// 3. RESPOSTAS JSON
 // ============================================================
 
-// Envia uma resposta no formato JSON.
+// Envia respostas padronizadas em JSON.
 function responderJson(resposta, codigo, dados) {
   resposta.writeHead(codigo, {
-    "Content-Type": "application/json; charset=utf-8"
+    "Content-Type": "application/json; charset=utf-8",
+    "Cache-Control": "no-store"
   });
 
   resposta.end(JSON.stringify(dados));
@@ -80,265 +125,259 @@ function converterParaTexto(linha, coluna) {
 
   return valor === null || valor === undefined
     ? ""
-    : valor.trim();
+    : String(valor).trim();
 }
 
 
 // ============================================================
-// 5. LEITURA DA PLANILHA EXCEL
+// 5. DOWNLOAD DA PLANILHA NO SUPABASE
 // ============================================================
 
-// Lê todas as ferramentas diretamente da planilha Excel.
-async function lerFerramentasDaPlanilha() {
-  console.log("Iniciando leitura da planilha com ExcelJS...");
+// Baixa a planilha de um bucket privado do Supabase.
+async function baixarPlanilhaSupabase() {
 
-  // Cria uma instância do ExcelJS.
-  const workbook = new ExcelJS.Workbook();
+  console.log("Iniciando download da planilha no Supabase...");
 
-  // Abre o arquivo XLSX diretamente, sem iniciar o Microsoft Excel.
-  await workbook.xlsx.readFile(caminhoPlanilha);
+  // Codifica o nome do bucket.
+  const bucketCodificado = encodeURIComponent(supabaseBucket);
 
-  // Localiza a aba CONTROLE.
-  const worksheet = workbook.getWorksheet("CONTROLE");
+  // Codifica cada parte do caminho do arquivo.
+  const arquivoCodificado = supabaseArquivo
+    .split("/")
+    .map(parte => encodeURIComponent(parte))
+    .join("/");
 
-  // Verifica se a aba existe.
-  if (!worksheet) {
-    throw new Error("A aba CONTROLE não foi encontrada na planilha.");
+  // Monta o endereço da API de Storage.
+  const urlArquivo =
+    `${supabaseUrl}/storage/v1/object/${bucketCodificado}/${arquivoCodificado}`;
+
+  // Faz o download utilizando as credenciais privadas.
+  const resposta = await fetch(urlArquivo, {
+    method: "GET",
+    headers: {
+      "apikey": supabaseSecretKey,
+      "Authorization": `Bearer ${supabaseSecretKey}`
+    },
+    signal: AbortSignal.timeout(30000)
+  });
+
+  // Verifica se o download foi concluído.
+  if (!resposta.ok) {
+    const detalheErro = (await resposta.text()).slice(0, 500);
+
+    console.error(
+      "Falha no download do Supabase:",
+      resposta.status,
+      detalheErro
+    );
+
+    throw new Error(
+      `Não foi possível baixar a planilha do Supabase. HTTP ${resposta.status}.`
+    );
   }
 
-  // Exibe informações para diagnóstico.
-  console.log("Total de linhas:", worksheet.rowCount);
-  console.log("Linhas efetivamente preenchidas:", worksheet.actualRowCount);
+  // Converte o arquivo recebido em um Buffer.
+  const arquivo = Buffer.from(
+    await resposta.arrayBuffer()
+  );
 
-  // Armazena todos os registros encontrados.
-  const ferramentas = [];
+  // Verifica se o arquivo não está vazio.
+  if (arquivo.length === 0) {
+    throw new Error("O arquivo recebido do Supabase está vazio.");
+  }
+
+  console.log("Download concluído com sucesso.");
+  console.log("Tamanho do arquivo:", arquivo.length, "bytes");
+
+  return arquivo;
+}
 
 
-// ======================================================
-// CONFERÊNCIA INDEPENDENTE DA QUANTIDADE DE ITENS
-// Conta os registros diretamente nas células do Excel.
-// ======================================================
+// ============================================================
+// 6. CARREGAMENTO DO EXCEL
+// ============================================================
 
-let totalColunaA = 0;
-let totalColunasABC = 0;
-let totalDesdeLinha4 = 0;
-let totalDesdeLinha1 = 0;
+// Carrega a planilha na memória.
+async function carregarWorkbook() {
 
-const registrosEncontrados = [];
+  const workbook = new ExcelJS.Workbook();
 
-for (let numeroLinha = 1; numeroLinha <= worksheet.rowCount; numeroLinha++) {
+  if (utilizarSupabase) {
+
+    // Obtém o arquivo privado do Supabase.
+    const arquivo = await baixarPlanilhaSupabase();
+
+    // Interpreta o XLSX diretamente na memória.
+    await workbook.xlsx.load(arquivo);
+
+  } else {
+
+    // Durante o desenvolvimento, utiliza o arquivo local.
+    console.log("Lendo planilha local:", caminhoPlanilhaLocal);
+
+    await workbook.xlsx.readFile(caminhoPlanilhaLocal);
+  }
+
+  return workbook;
+}
+
+
+// ============================================================
+// 7. DIAGNÓSTICO OPCIONAL DO INVENTÁRIO
+// ============================================================
+
+// Executa análises detalhadas somente quando DEBUG_INVENTARIO=true.
+function diagnosticarInventario(worksheet) {
+
+  console.log("\n========== DIAGNÓSTICO DO INVENTÁRIO ==========");
+
+  const ocorrencias = new Map();
+
+  let registrosIdentificados = 0;
+
+  for (
+    let numeroLinha = 4;
+    numeroLinha <= worksheet.rowCount;
+    numeroLinha++
+  ) {
+
     const linha = worksheet.getRow(numeroLinha);
 
-    const item = linha.getCell(1).text.trim();
-    const patrimonio = linha.getCell(2).text.trim();
-    const descricao = linha.getCell(3).text.trim();
-
-    const temItem = item !== "";
-    const temIdentificacao = Boolean(item || patrimonio || descricao);
-
-    if (temItem) totalColunaA++;
-
-    if (temIdentificacao) {
-        totalDesdeLinha1++;
-
-        if (numeroLinha >= 4) {
-            totalDesdeLinha4++;
-        }
-
-        registrosEncontrados.push({
-            linha: numeroLinha,
-            item,
-            patrimonio,
-            descricao
-        });
-    }
-
-    if (numeroLinha >= 4 && temIdentificacao) {
-        totalColunasABC++;
-    }
-}
-
-console.log("\n========== CONFERÊNCIA DOS REGISTROS ==========");
-console.log("Registros com item na coluna A:", totalColunaA);
-console.log("Registros com identificação desde a linha 1:", totalDesdeLinha1);
-console.log("Registros com identificação desde a linha 4:", totalDesdeLinha4);
-console.log("Total de registros A/B/C a partir da linha 4:", totalColunasABC);
-console.log("Primeiras linhas encontradas:", registrosEncontrados.slice(0, 5));
-console.log("Últimas linhas encontradas:", registrosEncontrados.slice(-5));
-console.log("===============================================\n");
-
-
-console.log("\n--- VERIFICAÇÃO DA SEQUÊNCIA DOS ITENS ---");
-
-const itensNumericos = [];
-
-for (let numeroLinha = 4; numeroLinha <= worksheet.rowCount; numeroLinha++) {
-    const valor = worksheet.getRow(numeroLinha).getCell(1).text.trim();
-    const numero = Number(valor);
-
-    if (valor !== "" && Number.isInteger(numero)) {
-        itensNumericos.push(numero);
-    }
-}
-
-const itensExistentes = new Set(itensNumericos);
-const itensAusentes = [];
-
-for (let numero = 1; numero <= 898; numero++) {
-    if (!itensExistentes.has(numero)) {
-        itensAusentes.push(numero);
-    }
-}
-
-console.log("Quantidade de itens numéricos:", itensNumericos.length);
-console.log("Primeiro item:", Math.min(...itensNumericos));
-console.log("Último item:", Math.max(...itensNumericos));
-console.log("Itens ausentes:", itensAusentes);
-console.log("------------------------------------------\n");
-
-
-console.log("\n--- ANÁLISE DE DUPLICIDADES E SALTOS ---");
-
-const ocorrencias = new Map();
-
-for (let numeroLinha = 4; numeroLinha <= worksheet.rowCount; numeroLinha++) {
-    const linha = worksheet.getRow(numeroLinha);
-
-    const item = linha.getCell(1).text.trim();
-    const patrimonio = linha.getCell(2).text.trim();
-    const descricao = linha.getCell(3).text.trim();
-
-    if (!/^\d+$/.test(item)) continue;
-
-    const numero = Number(item);
-
-    if (!ocorrencias.has(numero)) {
-        ocorrencias.set(numero, []);
-    }
-
-    ocorrencias.get(numero).push({
-        linha: numeroLinha,
-        item,
-        patrimonio,
-        descricao
-    });
-}
-
-// Identifica itens duplicados.
-const duplicados = [];
-
-for (const [numero, registros] of ocorrencias) {
-    if (registros.length > 1) {
-        duplicados.push({ numero, registros });
-    }
-}
-
-console.log("Itens duplicados:", duplicados);
-
-
-console.log("\n--- INSPEÇÃO DAS LINHAS FÍSICAS ---");
-
-const intervalos = [
-    { inicio: 510, fim: 522 },
-    { inicio: 628, fim: 635 }
-];
-
-for (const intervalo of intervalos) {
-    console.log(`\nVerificando linhas ${intervalo.inicio} até ${intervalo.fim}`);
-
-    for (
-        let numeroLinha = intervalo.inicio;
-        numeroLinha <= intervalo.fim;
-        numeroLinha++
-    ) {
-        const linha = worksheet.getRow(numeroLinha);
-
-        const dados = [];
-
-        for (let coluna = 1; coluna <= 11; coluna++) {
-            dados.push(linha.getCell(coluna).text.trim());
-        }
-
-        console.log({
-            linha: numeroLinha,
-            oculta: linha.hidden,
-            item: dados[0],
-            patrimonio: dados[1],
-            descricao: dados[2],
-            demaisColunas: dados.slice(3)
-        });
-    }
-}
-
-console.log("--- FIM DA INSPEÇÃO ---\n");
-
-
-// Mostra os registros próximos aos saltos identificados.
-const numerosAusentes = [513, 515, 519, 520, 521, 522, 523, 636];
-
-for (const numero of numerosAusentes) {
-    console.log(`\nVerificando proximidade do item ${numero}:`);
-
-    for (const vizinho of [numero - 1, numero + 1]) {
-        const registros = ocorrencias.get(vizinho) || [];
-
-        console.log(`Item ${vizinho}:`, registros);
-    }
-}
-
-console.log("\nTotal de números distintos:", ocorrencias.size);
-console.log("Total de ocorrências numéricas:", 
-    [...ocorrencias.values()].reduce((total, registros) => total + registros.length, 0)
-);
-
-console.log("--- FIM DA ANÁLISE ---\n");
-
-
-  // Percorre todas as linhas preenchidas da planilha.
-  worksheet.eachRow({ includeEmpty: false }, (linha, numeroLinha) => {
-
-    // Os registros começam na linha 4.
-    if (numeroLinha < 4) {
-      return;
-    }
-
-    // Extrai os dados das colunas correspondentes.
     const item = converterParaTexto(linha, 1);
     const patrimonio = converterParaTexto(linha, 2);
     const descricao = converterParaTexto(linha, 3);
 
-    // Ignora somente linhas sem qualquer identificação.
-    // O patrimônio não é obrigatório para cadastrar uma ferramenta.
-    if (!item && !patrimonio && !descricao) {
-      return;
+    if (item || patrimonio || descricao) {
+      registrosIdentificados++;
     }
 
-    // Adiciona a ferramenta mesmo que não possua patrimônio.
-    ferramentas.push({
-      item: item,
-      patrimonio: patrimonio,
-      descricao: descricao,
-      ordemCompra: converterParaTexto(linha, 4),
-      situacao: converterParaTexto(linha, 7),
-      local: converterParaTexto(linha, 8),
-      responsavel: converterParaTexto(linha, 9),
-      supervisor: converterParaTexto(linha, 10)
+    if (!/^\d+$/.test(item)) {
+      continue;
+    }
+
+    const numero = Number(item);
+
+    if (!ocorrencias.has(numero)) {
+      ocorrencias.set(numero, []);
+    }
+
+    ocorrencias.get(numero).push({
+      linha: numeroLinha,
+      patrimonio,
+      descricao
     });
-  });
+  }
 
-  
-  // Considera patrimônio válido somente quando o campo
-  // não está vazio e não contém apenas um hífen.
-  const comPatrimonio = ferramentas.filter(f => {
-      const patrimonio = f.patrimonio.trim();
+  // Identifica itens ausentes.
+  const itensAusentes = [];
 
-      return patrimonio !== "" && patrimonio !== "-";
+  for (let numero = 1; numero <= 898; numero++) {
+    if (!ocorrencias.has(numero)) {
+      itensAusentes.push(numero);
+    }
+  }
+
+  // Identifica duplicidades.
+  const duplicados = [];
+
+  for (const [numero, registros] of ocorrencias) {
+    if (registros.length > 1) {
+      duplicados.push({
+        numero,
+        registros
+      });
+    }
+  }
+
+  console.log("Registros identificados:", registrosIdentificados);
+  console.log("Itens numéricos distintos:", ocorrencias.size);
+  console.log("Itens ausentes:", itensAusentes);
+  console.log("Itens duplicados:", duplicados);
+  console.log("================================================\n");
+}
+
+
+// ============================================================
+// 8. LEITURA E ORGANIZAÇÃO DAS FERRAMENTAS
+// ============================================================
+
+// Interpreta a planilha e organiza os registros da API.
+async function lerFerramentasDaPlanilha() {
+
+  console.log("Iniciando leitura da planilha com ExcelJS...");
+
+  // Carrega o Excel do Supabase ou do arquivo local.
+  const workbook = await carregarWorkbook();
+
+  // Localiza a aba CONTROLE.
+  const worksheet = workbook.getWorksheet("CONTROLE");
+
+  if (!worksheet) {
+    throw new Error(
+      "A aba CONTROLE não foi encontrada na planilha."
+    );
+  }
+
+  console.log("Total de linhas:", worksheet.rowCount);
+  console.log(
+    "Linhas efetivamente preenchidas:",
+    worksheet.actualRowCount
+  );
+
+  // Executa diagnósticos adicionais somente quando necessário.
+  if (debugInventario) {
+    diagnosticarInventario(worksheet);
+  }
+
+  const ferramentas = [];
+
+  // Percorre todas as linhas preenchidas.
+  worksheet.eachRow(
+    { includeEmpty: false },
+    (linha, numeroLinha) => {
+
+      // Os registros começam na linha 4.
+      if (numeroLinha < 4) {
+        return;
+      }
+
+      // Extrai as informações das colunas.
+      const item = converterParaTexto(linha, 1);
+      const patrimonio = converterParaTexto(linha, 2);
+      const descricao = converterParaTexto(linha, 3);
+
+      // Ignora linhas completamente sem identificação.
+      if (!item && !patrimonio && !descricao) {
+        return;
+      }
+
+      // Mantém ferramentas mesmo sem patrimônio.
+      ferramentas.push({
+        item,
+        patrimonio,
+        descricao,
+        ordemCompra: converterParaTexto(linha, 4),
+        situacao: converterParaTexto(linha, 7),
+        local: converterParaTexto(linha, 8),
+        responsavel: converterParaTexto(linha, 9),
+        supervisor: converterParaTexto(linha, 10)
+      });
+    }
+  );
+
+  // Conta ferramentas com patrimônio válido.
+  const comPatrimonio = ferramentas.filter(ferramenta => {
+
+    const patrimonio = ferramenta.patrimonio.trim();
+
+    return patrimonio !== "" && patrimonio !== "-";
+
   }).length;
 
-  // Todas as ferramentas sem patrimônio.
-  const semPatrimonio = ferramentas.length - comPatrimonio;
+  // Calcula ferramentas sem patrimônio.
+  const semPatrimonio =
+    ferramentas.length - comPatrimonio;
 
-  // Exibe o resultado da leitura no terminal.
   console.log("--------------------------------------");
   console.log("LEITURA DA PLANILHA CONCLUÍDA");
   console.log("Total de ferramentas:", ferramentas.length);
@@ -346,35 +385,87 @@ console.log("--- FIM DA ANÁLISE ---\n");
   console.log("Sem patrimônio:", semPatrimonio);
   console.log("--------------------------------------");
 
-  // Retorna todos os registros organizados.
+  // Retorna os dados no formato utilizado pelo frontend.
   return {
     total: ferramentas.length,
-    comPatrimonio: comPatrimonio,
-    semPatrimonio: semPatrimonio,
-    ferramentas: ferramentas
+    comPatrimonio,
+    semPatrimonio,
+    ferramentas
   };
 }
 
 
 // ============================================================
-// 6. ENTREGA DOS ARQUIVOS ESTÁTICOS
+// 9. CACHE DA PLANILHA
 // ============================================================
 
-// Entrega os arquivos HTML, CSS, JavaScript e imagens ao navegador.
+// Evita baixar e interpretar a planilha em todas as requisições.
+async function obterDadosFerramentas() {
+
+  // Verifica se existe cache válido.
+  if (
+    dadosCacheados &&
+    Date.now() < cacheExpiraEm
+  ) {
+    console.log("Utilizando dados do cache.");
+
+    return dadosCacheados;
+  }
+
+  // Se já existe uma leitura em andamento, reutiliza a mesma operação.
+  if (leituraEmAndamento) {
+    return leituraEmAndamento;
+  }
+
+  // Inicia uma nova leitura.
+  leituraEmAndamento = (async () => {
+
+    const dados = await lerFerramentasDaPlanilha();
+
+    // Atualiza o cache somente após uma leitura bem-sucedida.
+    dadosCacheados = dados;
+    cacheExpiraEm = Date.now() + TEMPO_CACHE;
+
+    return dados;
+
+  })();
+
+  try {
+
+    return await leituraEmAndamento;
+
+  } catch (erro) {
+
+    // Não mantém resultados inválidos no cache.
+    dadosCacheados = null;
+    cacheExpiraEm = 0;
+
+    throw erro;
+
+  } finally {
+
+    leituraEmAndamento = null;
+  }
+}
+
+
+// ============================================================
+// 10. ENTREGA DOS ARQUIVOS ESTÁTICOS
+// ============================================================
+
+// Entrega HTML, CSS, JavaScript e imagens.
 async function enviarArquivo(caminhoRequisitado, resposta) {
 
-  // A página inicial será exibida quando o usuário acessar a raiz.
   const caminhoArquivo = caminhoRequisitado === "/"
     ? "/index.html"
     : caminhoRequisitado;
 
-  // Resolve o caminho absoluto do arquivo solicitado.
   const caminhoCompleto = resolve(
     diretorioProjeto,
     `.${caminhoArquivo}`
   );
 
-  // Impede que uma requisição acesse arquivos fora do projeto.
+  // Impede acesso a arquivos externos ao projeto.
   if (
     caminhoCompleto !== diretorioProjeto &&
     !caminhoCompleto.startsWith(diretorioProjeto + sep)
@@ -385,17 +476,15 @@ async function enviarArquivo(caminhoRequisitado, resposta) {
   }
 
   try {
-    // Lê o arquivo solicitado.
+
     const conteudo = await readFile(caminhoCompleto);
 
-    // Identifica a extensão do arquivo.
     const extensao = extname(caminhoCompleto).toLowerCase();
 
-    // Define o tipo de conteúdo correspondente.
-    const tipoConteudo = tiposDeConteudo[extensao]
-      || "application/octet-stream";
+    const tipoConteudo =
+      tiposDeConteudo[extensao] ||
+      "application/octet-stream";
 
-    // Envia o arquivo ao navegador.
     resposta.writeHead(200, {
       "Content-Type": tipoConteudo
     });
@@ -404,8 +493,10 @@ async function enviarArquivo(caminhoRequisitado, resposta) {
 
   } catch (erro) {
 
-    // Trata arquivos que não foram encontrados.
-    if (erro.code === "ENOENT" || erro.code === "EISDIR") {
+    if (
+      erro.code === "ENOENT" ||
+      erro.code === "EISDIR"
+    ) {
       resposta.writeHead(404, {
         "Content-Type": "text/plain; charset=utf-8"
       });
@@ -414,7 +505,6 @@ async function enviarArquivo(caminhoRequisitado, resposta) {
       return;
     }
 
-    // Registra outros erros no terminal.
     console.error("Erro ao enviar arquivo:", erro);
 
     resposta.writeHead(500, {
@@ -427,15 +517,13 @@ async function enviarArquivo(caminhoRequisitado, resposta) {
 
 
 // ============================================================
-// 7. CRIAÇÃO DO SERVIDOR HTTP
+// 11. CRIAÇÃO DO SERVIDOR HTTP
 // ============================================================
 
-// Cria o servidor responsável por receber as requisições.
 const servidor = createServer(async (requisicao, resposta) => {
 
   try {
 
-    // Identifica a URL solicitada pelo navegador.
     const url = new URL(
       requisicao.url,
       `http://${requisicao.headers.host || "localhost"}`
@@ -443,14 +531,33 @@ const servidor = createServer(async (requisicao, resposta) => {
 
 
     // --------------------------------------------------------
-    // ROTA: API DE FERRAMENTAS
+    // ROTA DE SAÚDE DO SERVIDOR
     // --------------------------------------------------------
 
-    // Endpoint responsável por disponibilizar as ferramentas.
+    if (
+      requisicao.method === "GET" &&
+      url.pathname === "/health"
+    ) {
+
+      responderJson(resposta, 200, {
+        status: "ok",
+        armazenamento: utilizarSupabase
+          ? "Supabase Storage"
+          : "Local"
+      });
+
+      return;
+    }
+
+
+    // --------------------------------------------------------
+    // API DE FERRAMENTAS
+    // --------------------------------------------------------
+
     if (url.pathname === "/api/ferramentas") {
 
-      // Aceita somente requisições GET.
       if (requisicao.method !== "GET") {
+
         resposta.writeHead(405, {
           "Content-Type": "application/json; charset=utf-8",
           "Allow": "GET"
@@ -465,20 +572,17 @@ const servidor = createServer(async (requisicao, resposta) => {
 
       try {
 
-        // Aguarda a leitura completa da planilha.
-        const resultado = await lerFerramentasDaPlanilha();
+        // Obtém os dados da planilha ou do cache.
+        const resultado = await obterDadosFerramentas();
 
-        // Retorna todos os registros em formato JSON.
         responderJson(resposta, 200, resultado);
 
       } catch (erro) {
 
-        // Registra o erro para facilitar a identificação do problema.
         console.error("Erro ao ler planilha:", erro);
 
-        // Informa ao cliente que ocorreu uma falha.
         responderJson(resposta, 500, {
-          erro: "Não foi possível ler a planilha."
+          erro: "Não foi possível carregar os dados do inventário."
         });
       }
 
@@ -487,11 +591,11 @@ const servidor = createServer(async (requisicao, resposta) => {
 
 
     // --------------------------------------------------------
-    // ROTAS DOS ARQUIVOS ESTÁTICOS
+    // ARQUIVOS ESTÁTICOS
     // --------------------------------------------------------
 
-    // Disponibiliza os arquivos estáticos somente por GET.
     if (requisicao.method !== "GET") {
+
       resposta.writeHead(405, {
         "Content-Type": "text/plain; charset=utf-8",
         "Allow": "GET"
@@ -501,22 +605,22 @@ const servidor = createServer(async (requisicao, resposta) => {
       return;
     }
 
-    // Decodifica o caminho solicitado.
     const caminhoRequisitado = decodeURIComponent(url.pathname);
 
-    // Entrega o arquivo solicitado ao navegador.
     await enviarArquivo(caminhoRequisitado, resposta);
 
   } catch (erro) {
 
-    // Trata erros inesperados durante o processamento da requisição.
     console.error("Erro no servidor:", erro);
 
     if (!resposta.headersSent) {
+
       responderJson(resposta, 500, {
         erro: "Erro interno do servidor."
       });
+
     } else {
+
       resposta.end();
     }
   }
@@ -524,14 +628,17 @@ const servidor = createServer(async (requisicao, resposta) => {
 
 
 // ============================================================
-// 8. INICIALIZAÇÃO DO SERVIDOR
+// 12. INICIALIZAÇÃO DO SERVIDOR
 // ============================================================
 
-// Inicia o servidor na porta configurada.
 servidor.listen(porta, "0.0.0.0", () => {
+
   console.log("--------------------------------------");
   console.log("Sistema de Almoxarifado iniciado!");
   console.log(`Servidor: http://localhost:${porta}`);
   console.log(`API: http://localhost:${porta}/api/ferramentas`);
+  console.log(`Saúde: http://localhost:${porta}/health`);
+  console.log("Armazenamento:", utilizarSupabase ? "Supabase" : "Local");
   console.log("--------------------------------------");
+
 });
