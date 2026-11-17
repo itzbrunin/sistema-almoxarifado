@@ -22,13 +22,16 @@ const diretorioProjeto = resolve(
   fileURLToPath(new URL(".", import.meta.url))
 );
 
-// Define o caminho da planilha Excel.
-
-const caminhoPlanilha = resolve(
-  diretorioProjeto,
-  "..",
-  "CONTROLE DE FERRAMENTAS.xlsx"
-);
+// Caminho da planilha:
+// - Render: utiliza a variável PLANILHA_PATH.
+// - Windows: utiliza a planilha na pasta acima do projeto.
+const caminhoPlanilha = process.env.PLANILHA_PATH
+  ? resolve(process.env.PLANILHA_PATH)
+  : resolve(
+      diretorioProjeto,
+      "..",
+      "CONTROLE DE FERRAMENTAS.xlsx"
+    );
 
 // Define a porta do servidor.
 const porta = Number(process.env.PORT || 3000);
