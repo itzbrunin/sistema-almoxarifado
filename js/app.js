@@ -1,4 +1,3 @@
-
 "use strict";
 
 // ============================================================
@@ -22,6 +21,7 @@ const botaoAnterior = document.querySelector("#pagina-anterior");
 const botaoProxima = document.querySelector("#pagina-proxima");
 const botaoUltima = document.querySelector("#pagina-ultima");
 const informacaoPaginacao = document.querySelector("#informacao-paginacao");
+const botaoExportar = document.querySelector("#botao-exportar");
 
 // Armazena todos os registros recebidos da API.
 let ferramentas = [];
@@ -29,7 +29,6 @@ let ferramentas = [];
 // Controla a navegação da tabela.
 let paginaAtual = 1;
 let quantidadePorPagina = 10;
-
 
 // ============================================================
 // 2. FUNÇÕES AUXILIARES
@@ -92,7 +91,6 @@ function obterClasseSituacao(situacao) {
   return "situacao--outra";
 }
 
-
 // ============================================================
 // 3. CARREGAMENTO DOS DADOS DA API
 // ============================================================
@@ -118,16 +116,23 @@ async function carregarFerramentas() {
     ferramentas = dados.ferramentas;
     paginaAtual = 1;
 
+    // Libera a exportação após o carregamento do inventário.
+    if (botaoExportar) botaoExportar.disabled = false;
+
     // Atualiza os componentes do dashboard.
     atualizarResumo(dados);
     preencherFiltros();
     atualizarTabela();
 
-    legendaTabela.textContent =
-      "Dados carregados diretamente da planilha Excel.";
+    if (legendaTabela) {
+      legendaTabela.textContent =
+        "Dados carregados diretamente da planilha Excel.";
+    }
 
   } catch (erro) {
     console.error("Erro ao carregar ferramentas:", erro);
+
+    if (botaoExportar) botaoExportar.disabled = true;
 
     cartoesResumo.innerHTML = `
       <article class="cartao cartao--erro">
@@ -148,7 +153,6 @@ async function carregarFerramentas() {
     atualizarControlesPaginacao(0, 0);
   }
 }
-
 
 // ============================================================
 // 4. INDICADORES DO DASHBOARD
@@ -214,7 +218,6 @@ function atualizarResumo(dados) {
   cartoesResumo.innerHTML = html;
 }
 
-
 // ============================================================
 // 5. PREENCHIMENTO AUTOMÁTICO DOS FILTROS
 // ============================================================
@@ -262,79 +265,17 @@ function preencherSelect(elemento, valores, textoPadrao) {
   }
 }
 
-
 // ============================================================
 // 6. PESQUISA E FILTROS
 // ============================================================
 
-
 function atualizarTabela() {
-  // Obtém e normaliza os valores dos filtros.
-  const termo = normalizar(campoBusca.value);
-  const situacaoSelecionada = normalizar(filtroSituacao.value);
-  const localSelecionado = normalizar(filtroLocal.value);
-  const responsavelSelecionado = normalizar(filtroResponsavel.value);
-
-  // Identifica se a pesquisa contém somente números.
-  const pesquisaNumerica = /^\d+$/.test(termo);
-
-  // Filtra todos os registros da planilha.
-  const encontradas = ferramentas.filter(ferramenta => {
-    const patrimonio = normalizar(ferramenta.patrimonio);
-
-    let correspondeBusca;
-
-    if (termo === "") {
-      correspondeBusca = true;
-
-    } else if (pesquisaNumerica) {
-      // Pesquisa numérica: somente patrimônio exato.
-      correspondeBusca = patrimonio === termo;
-
-    } else {
-      // Pesquisa textual: procura em todos os campos.
-      const textoCompleto = normalizar([
-        ferramenta.item,
-        ferramenta.patrimonio,
-        ferramenta.descricao,
-        ferramenta.ordemCompra,
-        ferramenta.situacao,
-        ferramenta.local,
-        ferramenta.responsavel,
-        ferramenta.supervisor
-      ].join(" "));
-
-      correspondeBusca = textoCompleto.includes(termo);
-    }
-
-    // Aplica os filtros adicionais.
-    const correspondeSituacao =
-      !situacaoSelecionada ||
-      normalizar(obterSituacao(ferramenta)) === situacaoSelecionada;
-
-    const correspondeLocal =
-      !localSelecionado ||
-      normalizar(obterTexto(ferramenta.local) || "NÃO INFORMADO") === localSelecionado;
-
-    const correspondeResponsavel =
-      !responsavelSelecionado ||
-      normalizar(obterTexto(ferramenta.responsavel) || "NÃO INFORMADO") === responsavelSelecionado;
-
-    return (
-      correspondeBusca &&
-      correspondeSituacao &&
-      correspondeLocal &&
-      correspondeResponsavel
-    );
-  });
-
-  // Reinicia a paginação após uma nova pesquisa.
+  // Reinicia a paginação quando a pesquisa ou algum filtro muda.
   paginaAtual = 1;
 
-  // Atualiza a tabela com os registros encontrados.
-  renderizarTabela(encontradas);
+  // Usa a mesma filtragem da navegação e da exportação.
+  renderizarTabela(obterFerramentasFiltradas());
 }
-
 
 // ============================================================
 // 7. RENDERIZAÇÃO DA TABELA COM PAGINAÇÃO
@@ -343,24 +284,20 @@ function atualizarTabela() {
 function renderizarTabela(lista) {
   const totalEncontrado = lista.length;
 
-  // Calcula quantas páginas existem para o resultado atual.
   const totalPaginas = Math.ceil(totalEncontrado / quantidadePorPagina);
 
-  // Evita permanecer em uma página que deixou de existir.
   if (totalPaginas === 0) {
     paginaAtual = 1;
   } else if (paginaAtual > totalPaginas) {
     paginaAtual = totalPaginas;
   }
 
-  // Calcula os limites dos registros da página atual.
   const indiceInicial = (paginaAtual - 1) * quantidadePorPagina;
   const indiceFinal = Math.min(
     indiceInicial + quantidadePorPagina,
     totalEncontrado
   );
 
-  // Separa somente os registros que serão exibidos.
   const ferramentasDaPagina = lista.slice(indiceInicial, indiceFinal);
 
   if (ferramentasDaPagina.length === 0) {
@@ -391,7 +328,6 @@ function renderizarTabela(lista) {
     }).join("");
   }
 
-  // Atualiza o texto que informa o intervalo exibido.
   if (totalEncontrado === 0) {
     resultadoBusca.textContent = "Nenhuma ferramenta encontrada.";
   } else {
@@ -399,10 +335,8 @@ function renderizarTabela(lista) {
       `Exibindo ${formatarNumero(indiceInicial + 1)}–${formatarNumero(indiceFinal)} de ${formatarNumero(totalEncontrado)} ferramentas encontradas.`;
   }
 
-  // Atualiza os botões e a informação da paginação.
   atualizarControlesPaginacao(totalPaginas, totalEncontrado);
 }
-
 
 // ============================================================
 // 8. CONTROLES DA PAGINAÇÃO
@@ -426,7 +360,6 @@ function atualizarControlesPaginacao(totalPaginas, totalEncontrado) {
   botaoUltima.disabled =
     !possuiResultados || paginaAtual >= totalPaginas;
 }
-
 
 // ============================================================
 // 9. EVENTOS DOS FILTROS E DA PAGINAÇÃO
@@ -480,14 +413,12 @@ botaoUltima.addEventListener("click", () => {
   atualizarTabelaSemReiniciarPagina();
 });
 
-
 // ============================================================
 // 10. NAVEGAÇÃO SEM REINICIAR A PÁGINA ATUAL
 // ============================================================
 
 // Retorna os registros que correspondem aos filtros atuais.
 // Essa função é usada pela navegação para não voltar à página 1.
-
 
 function obterFerramentasFiltradas() {
   const termo = normalizar(campoBusca.value);
@@ -501,7 +432,7 @@ function obterFerramentasFiltradas() {
 
   return ferramentas.filter(ferramenta => {
     const patrimonio = normalizar(ferramenta.patrimonio);
-    
+
     let correspondeBusca;
 
     if (termo === "") {
@@ -549,16 +480,157 @@ function obterFerramentasFiltradas() {
   });
 }
 
+// ============================================================
+// 11. EXPORTAÇÃO DO INVENTÁRIO PARA EXCEL
+// ============================================================
 
+async function exportarExcel() {
+  try {
+    // Recupera todos os registros que atendem à pesquisa e aos filtros.
+    // A paginação não é aplicada aqui: o relatório inclui todas as páginas.
+    const registros = obterFerramentasFiltradas();
+
+    if (registros.length === 0) {
+      alert("Não existem ferramentas para exportar com os filtros atuais.");
+      return;
+    }
+
+    // ExcelJS é carregado pelo HTML antes deste arquivo JavaScript.
+    if (typeof ExcelJS === "undefined") {
+      throw new Error(
+        "A biblioteca ExcelJS não foi carregada. Verifique a conexão com a internet e a inclusão do script no index.html."
+      );
+    }
+
+    const workbook = new ExcelJS.Workbook();
+
+    workbook.creator = "Sistema de Almoxarifado";
+    workbook.subject = "Relatório de ferramentas cadastradas";
+    workbook.title = "Inventário de Ferramentas";
+    workbook.created = new Date();
+
+    const worksheet = workbook.addWorksheet("Inventário", {
+      views: [{ state: "frozen", ySplit: 1 }]
+    });
+
+    // Define as colunas que serão incluídas no relatório.
+    worksheet.columns = [
+      { header: "Item", key: "item", width: 12 },
+      { header: "Patrimônio", key: "patrimonio", width: 18 },
+      { header: "Descrição", key: "descricao", width: 42 },
+      { header: "Ordem de Compra", key: "ordemCompra", width: 20 },
+      { header: "Situação", key: "situacao", width: 22 },
+      { header: "Local", key: "local", width: 28 },
+      { header: "Responsável", key: "responsavel", width: 30 },
+      { header: "Supervisor", key: "supervisor", width: 30 }
+    ];
+
+    // Mantém patrimônios como texto para preservar zeros à esquerda e hífens.
+    registros.forEach(ferramenta => {
+      worksheet.addRow({
+        item: obterTexto(ferramenta.item),
+        patrimonio: obterTexto(ferramenta.patrimonio) || "-",
+        descricao: obterTexto(ferramenta.descricao),
+        ordemCompra: obterTexto(ferramenta.ordemCompra),
+        situacao: obterSituacao(ferramenta),
+        local: obterTexto(ferramenta.local) || "-",
+        responsavel: obterTexto(ferramenta.responsavel) || "-",
+        supervisor: obterTexto(ferramenta.supervisor) || "-"
+      });
+    });
+
+    // Formata o cabeçalho do relatório.
+    const cabecalho = worksheet.getRow(1);
+
+    cabecalho.font = {
+      bold: true,
+      color: { argb: "FFFFFFFF" }
+    };
+
+    cabecalho.fill = {
+      type: "pattern",
+      pattern: "solid",
+      fgColor: { argb: "FF176B45" }
+    };
+
+    cabecalho.alignment = {
+      vertical: "middle",
+      horizontal: "center"
+    };
+
+    cabecalho.height = 25;
+
+    // Ativa os filtros no cabeçalho e mantém a primeira linha fixa.
+    worksheet.autoFilter = {
+      from: "A1",
+      to: "H1"
+    };
+
+    // Alinha os dados verticalmente e permite quebra de linha nas descrições.
+    worksheet.eachRow((linha, numeroLinha) => {
+      if (numeroLinha > 1) {
+        linha.alignment = {
+          vertical: "middle",
+          wrapText: true
+        };
+      }
+    });
+
+    const conteudo = await workbook.xlsx.writeBuffer();
+
+    const arquivo = new Blob([conteudo], {
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    });
+
+    // Gera um nome único com data e horário locais.
+    const agora = new Date();
+
+    const data = agora.toLocaleDateString("pt-BR").replace(/\//g, "-");
+
+    const horario = agora.toTimeString().slice(0, 8).replace(/:/g, "-");
+
+    const nomeArquivo = `inventario-ferramentas-${data}-${horario}.xlsx`;
+
+    // Inicia o download do arquivo gerado.
+    const url = URL.createObjectURL(arquivo);
+
+    const link = document.createElement("a");
+
+    link.href = url;
+    link.download = nomeArquivo;
+
+    document.body.appendChild(link);
+
+    link.click();
+    link.remove();
+
+    // Libera a URL temporária após o navegador iniciar o download.
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+
+    console.info(`${registros.length} ferramentas exportadas para ${nomeArquivo}.`);
+
+  } catch (erro) {
+    console.error("Erro ao exportar Excel:", erro);
+
+    alert(
+      "Não foi possível gerar o relatório Excel. Verifique a conexão com a internet e o console do navegador."
+    );
+  }
+}
+
+// Registra o evento do botão, caso ele exista no HTML.
+if (botaoExportar) {
+  botaoExportar.addEventListener("click", exportarExcel);
+  botaoExportar.disabled = true;
+}
 
 // Atualiza a tabela preservando a página escolhida na navegação.
 function atualizarTabelaSemReiniciarPagina() {
   renderizarTabela(obterFerramentasFiltradas());
 }
 
-
 // ============================================================
-// 11. INICIALIZAÇÃO
+// 13. INICIALIZAÇÃO
 // ============================================================
 
 // Busca os dados assim que a página é carregada.

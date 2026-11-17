@@ -4,98 +4,268 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Almoxarifado | Controle de Ferramentas</title>
+
+  <meta
+    name="description"
+    content="Sistema de controle e consulta de ferramentas da Tesla Eletricidade."
+  />
+
+  <title>Tesla Eletricidade | Controle de Ferramentas</title>
+
+  <!-- Estilos principais do sistema -->
   <link rel="stylesheet" href="css/styles.css" />
+
+  <!-- Biblioteca utilizada para exportação Excel -->
+  <script
+  src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"
+  integrity="sha384-Pqp51FUN2/qzfxZxBCtF0stpc9ONI6MYZpVqmo8m20SoaQCzf+arZvACkLkirlPz"
+  crossorigin="anonymous">
+  </script>
+
+  <!-- JavaScript principal do sistema -->
   <script src="js/app.js" defer></script>
 </head>
+
 <body>
+
+  <!-- ======================================================
+       CABEÇALHO INSTITUCIONAL
+       ====================================================== -->
+
   <header class="topo">
     <div class="topo__conteudo">
-      <div>
-        <p class="topo__identificacao">ALMOXARIFADO</p>
+
+      <div class="topo__marca">
+        <img
+          src="img/logo-tesla.png"
+          alt="Tesla Eletricidade e Mecânica Industrial"
+          class="topo__logo"
+        />
+
         <h1>Controle de Ferramentas</h1>
+        <p class="topo__identificacao">Sistema de Almoxarifado</p>
       </div>
-      <p class="topo__modo">Dados em tempo real</p>
+
+      <p class="topo__modo">Controle de Inventário</p>
+
     </div>
   </header>
 
+
+  <!-- ======================================================
+       CONTEÚDO PRINCIPAL
+       ====================================================== -->
+
   <main>
-    <section class="apresentacao">
+
+    <!-- APRESENTAÇÃO -->
+
+    <section
+      class="apresentacao"
+      aria-labelledby="titulo-apresentacao"
+    >
+
       <div>
-        <p class="etiqueta">VISÃO GERAL</p>
-        <h2>Acompanhe suas ferramentas em um só lugar.</h2>
+        <p class="etiqueta">GESTÃO DE FERRAMENTAS</p>
+
+        <h2 id="titulo-apresentacao">
+          Controle e acompanhamento do inventário.
+        </h2>
+
         <p>
-          Consulte o inventário, acompanhe a situação dos equipamentos
-          e encontre rapidamente as ferramentas cadastradas.
+          Consulte as ferramentas cadastradas, acompanhe suas situações,
+          localizações e responsáveis em um único ambiente.
         </p>
       </div>
-      <a class="botao" href="#lista-ferramentas">Ver ferramentas</a>
+
+      <a class="botao" href="#lista-ferramentas">
+        Consultar inventário
+      </a>
+
     </section>
 
-    <section class="resumo">
-      <h2 class="titulo-secao">Resumo do estoque</h2>
 
-      <!-- Os indicadores serão preenchidos pelo JavaScript. -->
-      <div id="cartoes-resumo" class="cartoes">
+    <!-- ====================================================
+         INDICADORES DO INVENTÁRIO
+         ==================================================== -->
+
+    <section
+      class="resumo"
+      aria-labelledby="titulo-resumo"
+    >
+
+      <h2 id="titulo-resumo" class="titulo-secao">
+        Resumo do inventário
+      </h2>
+
+      <!-- Os cartões são preenchidos pelo app.js -->
+      <div class="cartoes" id="cartoes-resumo">
+
         <article class="cartao">
-          <p class="cartao__titulo">Carregando dados...</p>
+          <p class="cartao__titulo">Total de ferramentas</p>
           <strong class="cartao__numero">--</strong>
+          <p class="cartao__descricao">Carregando inventário...</p>
         </article>
+
       </div>
+
     </section>
 
-    <section id="lista-ferramentas" class="painel">
+
+    <!-- ====================================================
+         PAINEL DE CONSULTA DO INVENTÁRIO
+         ==================================================== -->
+
+    <section
+      id="lista-ferramentas"
+      class="painel"
+      aria-labelledby="titulo-ferramentas"
+    >
+
+      <!-- CABEÇALHO DO PAINEL -->
+
       <div class="painel__cabecalho">
+
         <div>
           <p class="etiqueta">INVENTÁRIO</p>
-          <h2>Ferramentas cadastradas</h2>
+
+          <h2 id="titulo-ferramentas">
+            Ferramentas cadastradas
+          </h2>
         </div>
+
+        <button
+          type="button"
+          id="botao-exportar"
+          class="botao botao--exportar"
+          disabled
+        >
+          <span aria-hidden="true">↓</span>
+          Exportar Excel
+        </button>
+
       </div>
+
+
+      <!-- ==================================================
+           FILTROS
+           ================================================== -->
 
       <div class="filtros">
+
+        <!-- PESQUISA -->
+
         <div class="campo-filtro campo-filtro--busca">
-          <label for="campo-busca">Buscar ferramenta</label>
+
+          <label for="campo-busca">
+            Buscar ferramenta
+          </label>
+
           <input
-            id="campo-busca"
             type="search"
-            placeholder="Item, patrimônio, descrição..."
+            id="campo-busca"
+            placeholder="Patrimônio, descrição, item ou responsável"
             autocomplete="off"
+            aria-describedby="resultado-busca"
           />
+
         </div>
 
+
+        <!-- FILTRO DE SITUAÇÃO -->
+
         <div class="campo-filtro">
-          <label for="filtro-situacao">Situação</label>
+
+          <label for="filtro-situacao">
+            Situação
+          </label>
+
           <select id="filtro-situacao">
-            <option value="">Todas</option>
+
+            <option value="">Todas as situações</option>
+
+            <option value="disponivel">
+              Disponível
+            </option>
+
+            <option value="campo">
+              Em campo
+            </option>
+
+            <option value="manutencao">
+              Em manutenção
+            </option>
+
           </select>
+
         </div>
 
+
+        <!-- FILTRO DE LOCAL -->
+
         <div class="campo-filtro">
-          <label for="filtro-local">Localização</label>
+
+          <label for="filtro-local">
+            Local
+          </label>
+
           <select id="filtro-local">
-            <option value="">Todos</option>
+
+            <option value="">
+              Todos os locais
+            </option>
+
           </select>
+
         </div>
 
+
+        <!-- FILTRO DE RESPONSÁVEL -->
+
         <div class="campo-filtro">
-          <label for="filtro-responsavel">Responsável</label>
+
+          <label for="filtro-responsavel">
+            Responsável
+          </label>
+
           <select id="filtro-responsavel">
-            <option value="">Todos</option>
+
+            <option value="">
+              Todos os responsáveis
+            </option>
+
           </select>
+
         </div>
+
       </div>
 
-      <p id="resultado-busca" class="resultado-busca" aria-live="polite">
-        Aguardando dados...
+
+      <!-- RESULTADO DA PESQUISA -->
+
+      <p
+        id="resultado-busca"
+        class="resultado-busca"
+        aria-live="polite"
+      >
+        Carregando ferramentas...
       </p>
 
+
+      <!-- ==================================================
+           TABELA DO INVENTÁRIO
+           ================================================== -->
+
       <div class="tabela-container">
+
         <table>
-          <caption id="legenda-tabela">
-            Inventário carregado diretamente da planilha.
+
+          <caption>
+            Relação de ferramentas cadastradas no inventário.
           </caption>
 
           <thead>
+
             <tr>
               <th scope="col">Item</th>
               <th scope="col">Patrimônio</th>
@@ -104,55 +274,108 @@
               <th scope="col">Local</th>
               <th scope="col">Responsável</th>
             </tr>
+
           </thead>
 
           <tbody id="corpo-ferramentas">
+
             <tr>
-              <td colspan="6">Carregando ferramentas...</td>
+              <td colspan="6">
+                Carregando dados do inventário...
+              </td>
             </tr>
+
           </tbody>
+
         </table>
 
-        <!-- Controles de paginação da tabela -->
-        <div class="paginacao" aria-label="Paginação da tabela">
+      </div>
 
-          <div class="paginacao__quantidade">
-            <label for="itens-por-pagina">Registros por página:</label>
 
-            <select id="itens-por-pagina">
-              <option value="10" selected>10</option>
-              <option value="25">25</option>
-              <option value="50">50</option>
-              <option value="100">100</option>
-            </select>
-          </div>
+      <!-- ==================================================
+           PAGINAÇÃO
+           ================================================== -->
 
-          <div class="paginacao__navegacao">
-            <button type="button" id="pagina-primeira" aria-label="Primeira página">
-              «
-            </button>
+      <div class="paginacao">
 
-            <button type="button" id="pagina-anterior" aria-label="Página anterior">
-              ‹
-            </button>
+        <!-- QUANTIDADE DE REGISTROS POR PÁGINA -->
 
-            <span id="informacao-paginacao" aria-live="polite">
-              Página 1 de 1
-            </span>
+        <div class="paginacao__quantidade">
 
-            <button type="button" id="pagina-proxima" aria-label="Próxima página">
-              ›
-            </button>
+          <label for="itens-por-pagina">
+            Itens por página:
+          </label>
 
-            <button type="button" id="pagina-ultima" aria-label="Última página">
-              »
-            </button>
-          </div>
+          <select id="itens-por-pagina">
+
+            <option value="10" selected>10</option>
+            <option value="25">25</option>
+            <option value="50">50</option>
+            <option value="100">100</option>
+
+          </select>
 
         </div>
 
+
+        <!-- NAVEGAÇÃO ENTRE PÁGINAS -->
+
+        <nav
+          class="paginacao__navegacao"
+          aria-label="Navegação do inventário"
+        >
+
+          <button
+            type="button"
+            id="pagina-primeira"
+            aria-label="Primeira página"
+            title="Primeira página"
+            disabled
+          >
+            «
+          </button>
+
+          <button
+            type="button"
+            id="pagina-anterior"
+            aria-label="Página anterior"
+            title="Página anterior"
+            disabled
+          >
+            ‹
+          </button>
+
+          <span id="informacao-paginacao">
+            Página 1 de 1
+          </span>
+
+          <button
+            type="button"
+            id="pagina-proxima"
+            aria-label="Próxima página"
+            title="Próxima página"
+            disabled
+          >
+            ›
+          </button>
+
+          <button
+            type="button"
+            id="pagina-ultima"
+            aria-label="Última página"
+            title="Última página"
+            disabled
+          >
+            »
+          </button>
+
+        </nav>
+
       </div>
+
     </section>
+
   </main>
+
 </body>
 </html>

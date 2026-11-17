@@ -1,43 +1,81 @@
 
 /* ============================================================
+   SISTEMA DE ALMOXARIFADO - TESLA ELETRICIDADE
+   Identidade visual institucional
+   ============================================================ */
+
+
+/* ============================================================
    1. CONFIGURAÇÕES GERAIS
    ============================================================ */
+
+:root {
+  --tesla-red: #e31837;
+  --tesla-red-dark: #bd102b;
+  --tesla-black: #111111;
+  --tesla-black-soft: #1b1b1b;
+  --tesla-gray: #666666;
+  --tesla-gray-light: #f3f3f3;
+  --tesla-border: #e5e5e5;
+  --tesla-white: #ffffff;
+
+  --success: #16834a;
+  --success-bg: #e5f5eb;
+  --info: #245da8;
+  --info-bg: #e8f0fb;
+  --warning: #a66b00;
+  --warning-bg: #fff3d6;
+}
 
 * {
   box-sizing: border-box;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 body {
   margin: 0;
-  font-family: Arial, sans-serif;
-  background-color: #f4f7fb;
-  color: #1f2937;
+  font-family: Arial, Helvetica, sans-serif;
+  background-color: #f5f5f5;
+  color: var(--tesla-black);
+  line-height: 1.5;
+}
+
+button,
+input,
+select {
+  font: inherit;
 }
 
 main {
-  max-width: 1200px;
-  margin: 32px auto;
-  padding: 0 24px;
+  width: 100%;
+  max-width: 1320px;
+  margin: 36px auto;
+  padding: 0 28px;
 }
 
 
 /* ============================================================
-   2. CABEÇALHO
+   2. CABEÇALHO INSTITUCIONAL
    ============================================================ */
 
 .topo {
-  padding: 20px 24px;
-  background-color: #111827;
-  color: #ffffff;
+  position: relative;
+  padding: 22px 28px;
+  background-color: var(--tesla-black);
+  color: var(--tesla-white);
+  border-bottom: 4px solid var(--tesla-red);
 }
 
 .topo__conteudo {
   display: flex;
-  max-width: 1200px;
+  max-width: 1320px;
   margin: 0 auto;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
+  gap: 20px;
 }
 
 .topo h1,
@@ -45,24 +83,58 @@ main {
   margin: 0;
 }
 
+.topo h1 {
+  margin-top: 5px;
+  font-size: 25px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+
+.topo__marca {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 9px;
+}
+
+.topo__logo {
+  display: block;
+  width: 145px;
+  height: auto;
+  max-height: 62px;
+  object-fit: contain;
+}
+
 .topo__identificacao,
 .etiqueta {
-  font-size: 12px;
-  font-weight: bold;
-  letter-spacing: 0.08em;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
 }
 
 .topo__identificacao {
-  color: #93c5fd;
-  margin-top: 4px;
+  color: var(--tesla-red);
 }
 
 .topo__modo {
-  padding: 8px 12px;
-  border: 1px solid #4b5563;
-  border-radius: 999px;
-  color: #d1d5db;
-  font-size: 14px;
+  padding: 9px 15px;
+  border: 1px solid #444444;
+  border-radius: 3px;
+  color: #eeeeee;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.topo__modo::before {
+  content: "";
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  margin-right: 8px;
+  border-radius: 50%;
+  background-color: #28a85a;
 }
 
 
@@ -72,60 +144,134 @@ main {
 
 .apresentacao,
 .painel {
-  padding: 24px;
-  background-color: #ffffff;
-  border-radius: 12px;
+  padding: 30px;
+  background-color: var(--tesla-white);
+  border-radius: 3px;
+  border: 1px solid var(--tesla-border);
 }
 
 .apresentacao {
   display: flex;
-  gap: 24px;
+  gap: 28px;
   align-items: center;
   justify-content: space-between;
+  border-left: 4px solid var(--tesla-red);
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.035);
 }
 
 .apresentacao h2,
 .painel h2 {
-  margin: 6px 0 10px;
+  margin: 7px 0 12px;
+  color: var(--tesla-black);
+  font-size: 25px;
+  font-weight: 700;
+  letter-spacing: -0.7px;
 }
 
 .apresentacao p:not(.etiqueta) {
   max-width: 650px;
   margin: 0;
-  color: #4b5563;
-  line-height: 1.5;
+  color: var(--tesla-gray);
+  line-height: 1.7;
+  font-size: 14px;
 }
 
 .etiqueta {
   margin: 0;
-  color: #2563eb;
-}
-
-.botao {
-  display: inline-block;
-  padding: 12px 16px;
-  border: 0;
-  border-radius: 8px;
-  background-color: #2563eb;
-  color: #ffffff;
-  font: inherit;
-  font-weight: bold;
-  text-decoration: none;
-  white-space: nowrap;
+  color: var(--tesla-red);
 }
 
 
 /* ============================================================
-   4. INDICADORES
+   4. BOTÕES
+   ============================================================ */
+
+.botao {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  min-height: 44px;
+  padding: 12px 20px;
+  border: 1px solid var(--tesla-red);
+  border-radius: 2px;
+  background-color: var(--tesla-red);
+  color: var(--tesla-white);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-decoration: none;
+  text-transform: uppercase;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.botao:hover:not(:disabled) {
+  border-color: var(--tesla-red-dark);
+  background-color: var(--tesla-red-dark);
+}
+
+.botao:focus-visible {
+  outline: 3px solid rgba(227, 24, 55, 0.25);
+  outline-offset: 3px;
+}
+
+.botao:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.botao--exportar {
+  background-color: var(--tesla-red);
+  border-color: var(--tesla-red);
+}
+
+.botao--exportar:hover:not(:disabled) {
+  background-color: var(--tesla-red-dark);
+}
+
+.botao--exportar span {
+  font-size: 19px;
+  line-height: 1;
+}
+
+.botao:disabled {
+  background-color: #aaaaaa;
+  border-color: #aaaaaa;
+  color: #ffffff;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+
+/* ============================================================
+   5. INDICADORES DO INVENTÁRIO
    ============================================================ */
 
 .resumo {
-  margin: 32px 0;
+  margin: 38px 0;
 }
 
 .titulo-secao {
-  margin: 0 0 16px;
-  font-size: 20px;
+  position: relative;
+  margin: 0 0 20px;
+  padding-left: 13px;
+  font-size: 19px;
+  font-weight: 700;
+  color: var(--tesla-black);
+}
+
+.titulo-secao::before {
+  content: "";
+  position: absolute;
+  top: 2px;
+  bottom: 2px;
+  left: 0;
+  width: 4px;
+  background-color: var(--tesla-red);
 }
 
 .cartoes {
@@ -135,47 +281,96 @@ main {
 }
 
 .cartao {
+  position: relative;
   min-width: 0;
-  padding: 20px;
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
-  background-color: #ffffff;
+  padding: 23px;
+  overflow: hidden;
+  border: 1px solid var(--tesla-border);
+  border-radius: 3px;
+  background-color: var(--tesla-white);
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.025);
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.cartao::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background-color: var(--tesla-red);
+}
+
+.cartao:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 7px 20px rgba(0, 0, 0, 0.07);
 }
 
 .cartao__titulo,
 .cartao__descricao {
   margin: 0;
-  color: #6b7280;
+  color: var(--tesla-gray);
+}
+
+.cartao__titulo {
+  font-size: 13px;
+  font-weight: 600;
 }
 
 .cartao__numero {
   display: block;
-  margin: 12px 0 4px;
-  font-size: 32px;
+  margin: 13px 0 5px;
+  color: var(--tesla-black);
+  font-size: 34px;
+  font-weight: 700;
+  letter-spacing: -1px;
   overflow-wrap: anywhere;
 }
 
+.cartao__descricao {
+  font-size: 12px;
+  line-height: 1.5;
+}
+
 .cartao--erro {
-  border-color: #fecaca;
+  border-color: #f1b7c1;
+}
+
+.cartao--erro::before {
+  background-color: var(--tesla-red);
 }
 
 
 /* ============================================================
-   5. PAINEL E FILTROS
+   6. PAINEL DO INVENTÁRIO E FILTROS
    ============================================================ */
+
+.painel {
+  margin-bottom: 35px;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.035);
+}
 
 .painel__cabecalho {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
+  gap: 18px;
+  padding-bottom: 22px;
+  border-bottom: 1px solid var(--tesla-border);
+}
+
+.painel__cabecalho h2 {
+  margin-bottom: 0;
 }
 
 .filtros {
   display: flex;
   flex-wrap: wrap;
   gap: 16px;
-  margin-top: 24px;
+  margin-top: 25px;
 }
 
 .campo-filtro {
@@ -190,43 +385,58 @@ main {
 .campo-filtro label {
   display: block;
   margin-bottom: 8px;
-  font-size: 14px;
-  font-weight: bold;
+  color: var(--tesla-black);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.025em;
 }
 
 .campo-filtro input,
 .campo-filtro select {
   width: 100%;
-  min-height: 44px;
-  padding: 12px;
-  border: 1px solid #9ca3af;
-  border-radius: 8px;
-  color: #1f2937;
+  min-height: 45px;
+  padding: 11px 13px;
+  border: 1px solid #d5d5d5;
+  border-radius: 2px;
+  color: var(--tesla-black);
   background-color: #ffffff;
-  font: inherit;
+  font-size: 13px;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.campo-filtro input::placeholder {
+  color: #999999;
 }
 
 .campo-filtro input:focus,
 .campo-filtro select:focus {
-  border-color: #2563eb;
-  outline: 3px solid #bfdbfe;
+  border-color: var(--tesla-red);
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(227, 24, 55, 0.10);
 }
 
 .resultado-busca {
   width: 100%;
-  margin: 20px 0 0;
-  color: #6b7280;
-  font-size: 14px;
+  margin: 22px 0 0;
+  padding: 11px 14px;
+  border-left: 3px solid var(--tesla-red);
+  background-color: #f7f7f7;
+  color: var(--tesla-gray);
+  font-size: 12px;
 }
 
 
 /* ============================================================
-   6. TABELA DE FERRAMENTAS
+   7. TABELA DE FERRAMENTAS
    ============================================================ */
 
 .tabela-container {
   overflow-x: auto;
-  margin-top: 12px;
+  margin-top: 16px;
+  border: 1px solid var(--tesla-border);
+  border-radius: 2px;
 }
 
 table {
@@ -236,70 +446,89 @@ table {
 }
 
 caption {
-  padding: 12px 0;
-  color: #6b7280;
+  padding: 13px 14px;
+  color: var(--tesla-gray);
   text-align: left;
+  font-size: 12px;
 }
 
 th,
 td {
-  padding: 14px 12px;
-  border-bottom: 1px solid #e5e7eb;
+  padding: 15px 13px;
+  border-bottom: 1px solid #eaeaea;
   vertical-align: middle;
 }
 
 th {
-  background-color: #f9fafb;
-  color: #374151;
-  font-size: 14px;
+  background-color: var(--tesla-black);
+  color: var(--tesla-white);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.045em;
+  text-transform: uppercase;
   white-space: nowrap;
 }
 
 td {
-  font-size: 14px;
+  color: #383838;
+  font-size: 13px;
+}
+
+tbody tr {
+  transition: background-color 0.15s ease;
+}
+
+tbody tr:nth-child(even) {
+  background-color: #fafafa;
 }
 
 tbody tr:hover {
-  background-color: #f9fafb;
+  background-color: #fff0f2;
+}
+
+tbody tr:last-child td {
+  border-bottom: 0;
 }
 
 
 /* ============================================================
-   7. IDENTIFICAÇÃO DAS SITUAÇÕES
+   8. IDENTIFICAÇÃO DAS SITUAÇÕES
    ============================================================ */
 
 .situacao {
   display: inline-block;
   padding: 6px 10px;
-  border-radius: 999px;
-  font-size: 12px;
-  font-weight: bold;
+  border-radius: 2px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.035em;
+  text-transform: uppercase;
   white-space: nowrap;
 }
 
 .situacao--disponivel {
-  background-color: #dcfce7;
-  color: #166534;
+  background-color: var(--success-bg);
+  color: var(--success);
 }
 
 .situacao--campo {
-  background-color: #dbeafe;
-  color: #1d4ed8;
+  background-color: var(--info-bg);
+  color: var(--info);
 }
 
 .situacao--manutencao {
-  background-color: #fef3c7;
-  color: #92400e;
+  background-color: var(--warning-bg);
+  color: var(--warning);
 }
 
 .situacao--outra {
-  background-color: #e5e7eb;
-  color: #374151;
+  background-color: #eeeeee;
+  color: #555555;
 }
 
 
 /* ============================================================
-   8. PAGINAÇÃO
+   9. PAGINAÇÃO
    ============================================================ */
 
 .paginacao {
@@ -309,92 +538,116 @@ tbody tr:hover {
   flex-wrap: wrap;
   gap: 16px;
   margin-top: 20px;
-  padding-top: 18px;
-  border-top: 1px solid #e5e7eb;
+  padding: 18px 14px;
+  border-top: 1px solid var(--tesla-border);
+  background-color: #fafafa;
 }
 
 .paginacao__quantidade {
   display: flex;
   align-items: center;
   gap: 10px;
-  color: #4b5563;
-  font-size: 14px;
+  color: var(--tesla-gray);
+  font-size: 12px;
 }
 
 .paginacao__quantidade label {
-  font-weight: bold;
+  font-weight: 700;
 }
 
 .paginacao__quantidade select {
   min-height: 38px;
   padding: 6px 10px;
-  border: 1px solid #9ca3af;
-  border-radius: 8px;
+  border: 1px solid #d5d5d5;
+  border-radius: 2px;
   background-color: #ffffff;
-  color: #1f2937;
-  font: inherit;
+  color: var(--tesla-black);
+  font-size: 12px;
   cursor: pointer;
 }
 
 .paginacao__quantidade select:focus {
-  border-color: #2563eb;
-  outline: 3px solid #bfdbfe;
+  border-color: var(--tesla-red);
+  outline: 3px solid rgba(227, 24, 55, 0.12);
 }
 
 .paginacao__navegacao {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 7px;
 }
 
 .paginacao__navegacao button {
-  min-width: 38px;
-  min-height: 38px;
+  min-width: 37px;
+  min-height: 37px;
   padding: 6px 10px;
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
+  border: 1px solid #dddddd;
+  border-radius: 2px;
   background-color: #ffffff;
-  color: #1f2937;
-  font-size: 18px;
-  font-weight: bold;
+  color: var(--tesla-black);
+  font-size: 17px;
+  font-weight: 700;
   cursor: pointer;
-  transition: background-color 0.2s, border-color 0.2s;
+  transition:
+    background-color 0.2s,
+    border-color 0.2s,
+    color 0.2s;
 }
 
 .paginacao__navegacao button:hover:not(:disabled) {
-  border-color: #2563eb;
-  background-color: #eff6ff;
-  color: #1d4ed8;
+  border-color: var(--tesla-red);
+  background-color: var(--tesla-red);
+  color: #ffffff;
 }
 
 .paginacao__navegacao button:focus-visible {
-  outline: 3px solid #bfdbfe;
+  outline: 3px solid rgba(227, 24, 55, 0.2);
   outline-offset: 2px;
 }
 
 .paginacao__navegacao button:disabled {
-  background-color: #f3f4f6;
-  color: #9ca3af;
+  border-color: #e5e5e5;
+  background-color: #eeeeee;
+  color: #aaaaaa;
   cursor: not-allowed;
 }
 
 #informacao-paginacao {
   min-width: 105px;
-  color: #4b5563;
-  font-size: 14px;
+  color: var(--tesla-gray);
+  font-size: 12px;
   text-align: center;
   white-space: nowrap;
 }
 
 
 /* ============================================================
-   9. RESPONSIVIDADE
+   10. RESPONSIVIDADE
    ============================================================ */
+
+@media (max-width: 900px) {
+  main {
+    padding: 0 20px;
+  }
+
+  .cartoes {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .painel {
+    padding: 22px;
+  }
+}
 
 @media (max-width: 700px) {
   main {
-    padding: 0 16px;
+    margin: 22px auto;
+    padding: 0 14px;
+  }
+
+  .topo {
+    padding: 19px 18px;
   }
 
   .topo__conteudo,
@@ -404,20 +657,55 @@ tbody tr:hover {
     flex-direction: column;
   }
 
+  .topo h1 {
+    font-size: 22px;
+  }
+
+  .topo__logo {
+    width: 130px;
+  }
+
+  .topo__modo {
+    align-self: flex-start;
+  }
+
   .apresentacao,
   .painel {
-    padding: 18px;
+    padding: 19px;
+  }
+
+  .apresentacao h2,
+  .painel h2 {
+    font-size: 21px;
+  }
+
+  .apresentacao .botao {
+    width: 100%;
   }
 
   .cartoes {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 11px;
+  }
+
+  .cartao {
+    padding: 17px;
+  }
+
+  .cartao__numero {
+    font-size: 28px;
   }
 
   .filtros {
     flex-direction: column;
+    gap: 13px;
   }
 
   .campo-filtro {
+    width: 100%;
+  }
+
+  .painel__cabecalho .botao--exportar {
     width: 100%;
   }
 
@@ -430,6 +718,14 @@ tbody tr:hover {
     width: 100%;
     justify-content: space-between;
   }
+
+  .tabela-container {
+    margin-right: -2px;
+  }
+
+  table {
+    min-width: 850px;
+  }
 }
 
 @media (max-width: 420px) {
@@ -438,7 +734,7 @@ tbody tr:hover {
   }
 
   .topo h1 {
-    font-size: 22px;
+    font-size: 20px;
   }
 
   .paginacao__quantidade {
@@ -458,6 +754,6 @@ tbody tr:hover {
 
   #informacao-paginacao {
     min-width: 90px;
-    font-size: 13px;
+    font-size: 11px;
   }
 }

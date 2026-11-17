@@ -1,17 +1,11 @@
-# Dependências e arquivos gerados
 node_modules/
-dist/
-
-# Dados privados e configurações locais
 .env
 .env.*
 !.env.example
-
-# Arquivos do sistema operacional e de editores
+*.log
 .DS_Store
 Thumbs.db
 
-# Cópias de planilhas usadas somente para importação
+# Planilhas de controle
 *.xlsx
 *.xls
-*.csv

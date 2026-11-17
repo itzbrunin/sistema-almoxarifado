@@ -519,7 +519,7 @@ const servidor = createServer(async (requisicao, resposta) => {
 // ============================================================
 
 // Inicia o servidor na porta configurada.
-servidor.listen(porta, () => {
+servidor.listen(porta, "0.0.0.0", () => {
   console.log("--------------------------------------");
   console.log("Sistema de Almoxarifado iniciado!");
   console.log(`Servidor: http://localhost:${porta}`);
