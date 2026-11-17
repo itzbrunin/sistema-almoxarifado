@@ -33,6 +33,12 @@ const caminhoPlanilha = process.env.PLANILHA_PATH
       "CONTROLE DE FERRAMENTAS.xlsx"
     );
 
+console.log("--------------------------------------");
+console.log("VERIFICAÇÃO DA PLANILHA");
+console.log("PLANILHA_PATH:", process.env.PLANILHA_PATH);
+console.log("Caminho utilizado:", caminhoPlanilha);
+console.log("--------------------------------------");
+
 // Define a porta do servidor.
 const porta = Number(process.env.PORT || 3000);
 
